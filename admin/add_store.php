@@ -1,4 +1,3 @@
-
 <?php
 
 include('../includes/config.php'); // adjust path if needed
@@ -8,7 +7,8 @@ include('../includes/config.php'); // adjust path if needed
 //     header("Location: ../index.php");
 //     exit();
 // }
-?><!doctype html>
+?>
+<!doctype html>
 <html class="no-js" lang="en">
 
 <meta http-equiv="content-type" content="text/html;charset=utf-8" />
@@ -46,25 +46,25 @@ include('../includes/config.php'); // adjust path if needed
             <article class="content dashboard-page bg-white">
                 <section class="section">
                     <div class="container">
-                         <span class="fw-bold">ADD STORE</span>
-                        <form action="" id="externallogin" method="post" class="p-3">
+                        <span class="fw-bold">ADD STORE</span>
+                        <form action="" id="addstore" method="post" class="p-3">
                             <div class="row">
                                 <div class="col-md-6">
 
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">STORE NAME</label>
-                                        <input class="form-control" type="text" name="storename" placeholder="Enter the storename" required>
+                                        <input class="form-control" type="text" name="stores_name" placeholder="Enter the storename" required>
                                     </div>
 
-                                   
+
 
 
 
                                 </div>
                                 <div class="col-md-6">
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">STORE LOCATION</label>
-                                        <input class="form-control" type="text" name="store_location" placeholder="Enter the store location" required>
+                                        <input class="form-control" type="text" name="stores_location" placeholder="Enter the store location" required>
                                     </div>
                                 </div>
 
@@ -86,7 +86,7 @@ include('../includes/config.php'); // adjust path if needed
 
                                 </div> -->
                                 <div class="col-12  text-center ">
-                                    <button type="submit" name="admin_login" class="btn btn-primary w-35">Add Store</button>
+                                    <button type="submit" name="addstorelogin" class="btn btn-primary w-35">Add Store</button>
                                 </div>
 
                             </div>
@@ -102,19 +102,19 @@ include('../includes/config.php'); // adjust path if needed
                 <section class="section">
                     <div class="container">
                         <div class="row">
-                            <table class="table text-center"  >
+                            <table class="table text-center">
                                 <thead>
                                     <tr>
                                         <th scope="col">s.no</th>
                                         <th scope="col">store name</th>
                                         <th scope="col">store location</th>
                                         <!-- <th scope="col">usertype</th> -->
-                                         <th scope="col">Actions</th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody  id="add_store">
-                                    
-                                    
+                                <tbody id="fetch_stores">
+
+
                                 </tbody>
                             </table>
                         </div>
@@ -135,134 +135,84 @@ include('../includes/config.php'); // adjust path if needed
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
 
-  <script>
-$(document).ready(function () {
+    <script>
+        $(document).ready(function() {
 
-    // =====================
-    // ADD FORM SUBMIT
-    // =====================
-    $('#externallogin').on('submit', function (e) {
-        e.preventDefault();
 
-        const externalname = $('input[name="externalname"]').val();
-        const password = $('input[name="password"]').val();
-        const usertype = $('select[name="usertype"]').val();
+            // ADD FORM SUBMIT
 
-        const formData = {
-            externalname: externalname,
-            password: password,
-            usertype: usertype
-        };
+            $('#addstore').on('submit', function(e) {
+                e.preventDefault();
 
-        $.ajax({
-            url: 'api/adminlogin.php',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(formData),
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    $('#externallogin')[0].reset();
-                    fetchLoginDetails(); // refresh table after adding
-                } else {
-                    if (Array.isArray(response.message)) {
-                        alert("Error:\n" + response.message.join("\n"));
-                    } else {
-                        alert("Error: " + response.message);
+                const stores_name = $('input[name="stores_name"]').val();
+                const stores_location = $('input[name="stores_location"]').val();
+                const usertype = "Admin"; // or get from a dropdown if you add later
+
+                $.ajax({
+                    url: 'api/stores.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        stores_name: stores_name,
+                        stores_location: stores_location,
+                        usertype: usertype
+                    },
+                    success: function(response) {
+                        console.log("Response from server:", response); // debug
+                        if (response && response.status === "success") {
+                            alert(response.message);
+                            $('#addstore')[0].reset();
+                            fetch_stores();
+                        } else {
+                            alert("Error: " + (response.message || "Unknown error"));
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log("XHR error:", xhr.responseText);
+                        alert("Something went wrong. Please try again.");
                     }
-                }
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText);
-                alert("Something went wrong. Please try again.");
+                });
+
+            });
+
+
+            //fetch stores table
+            function fetch_stores() {
+                $.ajax({
+                    url: 'api/fetchstore.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === "success") {
+                            let rows = "";
+                            response.data.forEach(function(store) {
+                                rows += `
+                        <tr>
+                            <td>${store.sno}</td>
+                            <td>${store.stores_name}</td>
+                            <td>${store.stores_location}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editStore(${store.id})"><i class="fa fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteStore(${store.id})"><i class="fa fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                            });
+                            $('#fetch_stores').html(rows);
+                        } else {
+                            $('#fetch_stores').html(`<tr><td colspan="4">${response.message}</td></tr>`);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log("Error fetching stores:", xhr.responseText);
+                        $('#fetch_stores').html(`<tr><td colspan="4">Failed to fetch stores</td></tr>`);
+                    }
+                });
             }
+
+
         });
-    });
-
-    // =====================
-    // FETCH TABLE DATA
-    // =====================
-    function fetchLoginDetails() {
-        $.ajax({
-            url: 'api/fetchlogin.php',
-            type: 'GET',
-            dataType: 'json',
-            success: function (response) {
-                if (response.status === true && Array.isArray(response.data)) {
-                    let tableRows = '';
-                    response.data.forEach(function (user, index) {
-                        tableRows += `
-                            <tr>
-                                <th scope="row">${user.sno}</th>
-                                <td>${user.email}</td>
-                                <td>${user.password}</td>
-                                <td>${user.usertype}</td>  
-                                <td>
-                                    <button class="btn btn-danger btn-sm delete-btn" data-id="${user.id}">
-                                        <i class="fa fa-trash"></i> 
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    $('#loginTableBody').html(tableRows);
-                } else {
-                    $('#loginTableBody').html(`
-                        <tr><td colspan="5" class="text-center">No data found</td></tr>
-                    `);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Fetch Error:", error);
-                $('#loginTableBody').html(`
-                    <tr><td colspan="5" class="text-danger text-center">Something went wrong</td></tr>
-                `);
-            }
-        });
-    }
-
-    // =====================
-    // DELETE BUTTON CLICK
-    // =====================
-    $(document).on('click', '.delete-btn', function (e) {
-         e.preventDefault();
-        let id = $(this).data('id');
-
-        if (!confirm("Are you sure you want to delete this record?")) {
-            return;
-        }
-
-        let formData = new FormData();
-        formData.append('id', id);
-
-        $.ajax({
-            url: 'api/deletelogin.php',
-            type: 'POST',
-             dataType: 'json',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    // fetchLoginDetails(); // refresh after delete
-                     location.reload();
-            
-                } else {
-                    alert("Error: " + response.message);
-                }
-            },
-           
-        });
-    });
-
-    // =====================
-    // INITIAL LOAD
-    // =====================
-    fetchLoginDetails();
-
-});
-</script>
+    </script>
 
 
 </body>
