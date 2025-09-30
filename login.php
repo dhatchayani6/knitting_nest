@@ -1,55 +1,75 @@
 <?php
+
+
+// Allow CORS & set JSON header
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method, Access-Control-Allow-Origin");
+header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept");
 
+// Include DB config
 include "includes/config.php";
 
 try {
+    // Only allow POST
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         throw new Exception($_SERVER["REQUEST_METHOD"] . ' Method Not Allowed', 405);
     }
 
-    // Get values from form-data
-    $bioid = isset($_POST['bioid']) ? addslashes(trim($_POST['bioid'])) : null;
-    $password = isset($_POST['password']) ? addslashes(trim($_POST['password'])) : null;
+    // Get POST values (form-data)
+    $bioid = isset($_POST['bio_id']) ? trim($_POST['bio_id']) : null;
+    $password = isset($_POST['password']) ? trim($_POST['password']) : null;
 
     if (empty($bioid) || empty($password)) {
         throw new Exception('Missing Bio ID or Password', 400);
     }
 
-    $CheckUserQuery = "SELECT * FROM login WHERE bioid = '$bioid' AND password = '$password'";
-    $CheckUserQueryResults = mysqli_query($conn, $CheckUserQuery);
+    // Prepared statement for security
+    $stmt = $conn->prepare("SELECT * FROM login WHERE bio_id = ? AND password = ?");
+    $stmt->bind_param("ss", $bioid, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if (mysqli_num_rows($CheckUserQueryResults) > 0) {
-        $record = mysqli_fetch_assoc($CheckUserQueryResults);
+    if ($result->num_rows > 0) {
+        $record = $result->fetch_assoc();
 
-        $AccountType = !empty($record["usertype"]) ? $record["usertype"] : "shopkeeper";
+        // Determine user type
+        $AccountType = strtolower($record["usertype"]); // ensure lowercase for comparison
 
-        // Map user types to pages
-        $redirect_pages = [
-            "admin" => "admin/admin_dashboard.php",
-            "shopkeeper" => "shokeeper/shopkeeper_dashboard.php"
-        ];
+        // Map user types to redirect pages
+        if ($AccountType === "admin") {
+            $redirect_url = "admin/admin_index.php";
+        } elseif ($AccountType === "shopkeeper") {
+            $redirect_url = "shopkeeper/shopkeeper_dashboard.php";
+        } else {
+            $redirect_url = "index.php"; // fallback
+        }
 
-        $redirect_url = isset($redirect_pages[$AccountType]) ? $redirect_pages[$AccountType] : "default_dashboard.php";
+        // Store session info
+        $_SESSION['user_id'] = $record["id"];
+        $_SESSION['bioid'] = $record["bio_id"];
+        $_SESSION['user_type'] = $AccountType;
 
+        // Return JSON
         echo json_encode([
             'status' => 200,
             'message' => 'Login Success',
-            'user_id' => $record["u_id"],
-            'user_name' => $record["name"],
-            'bioid' => $record["bioid"],
+            'user_id' => $record["id"],
+            'bioid' => $record["bio_id"],
             'user_type' => $AccountType,
             'redirect_url' => $redirect_url
         ]);
+
     } else {
-        echo json_encode(['status' => 401, 'message' => 'Invalid Bio ID or Password']);
+        // Invalid credentials
+        echo json_encode([
+            'status' => 401,
+            'message' => 'Invalid Bio ID or Password'
+        ]);
     }
 
 } catch (Exception $e) {
-    $status = $e->getCode() ? $e->getCode() : 500;
+    $status = $e->getCode() ?: 500;
     $message = $e->getMessage();
     echo json_encode(['status' => $status, 'message' => $message]);
 }

@@ -4,10 +4,10 @@
 include('../includes/config.php'); // adjust path if needed
 
 // If user is not logged in, redirect to login page
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
-    exit();
-}
+// if (!isset($_SESSION['user_id'])) {
+//     header("Location: ../index.php");
+//     exit();
+// }
 ?><!doctype html>
 <html class="no-js" lang="en">
 
