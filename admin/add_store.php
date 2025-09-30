@@ -138,15 +138,13 @@ include('../includes/config.php'); // adjust path if needed
     <script>
         $(document).ready(function() {
 
-
-            // ADD FORM SUBMIT
-
+            // 1️⃣ ADD STORE (Insert)
             $('#addstore').on('submit', function(e) {
                 e.preventDefault();
 
                 const stores_name = $('input[name="stores_name"]').val();
                 const stores_location = $('input[name="stores_location"]').val();
-                const usertype = "Admin"; // or get from a dropdown if you add later
+                const usertype = "Admin"; // or get from a dropdown if needed
 
                 $.ajax({
                     url: 'api/stores.php',
@@ -158,61 +156,89 @@ include('../includes/config.php'); // adjust path if needed
                         usertype: usertype
                     },
                     success: function(response) {
-                        console.log("Response from server:", response); // debug
-                        if (response && response.status === "success") {
+                        console.log("Add response:", response);
+                        if (response.status === "success") {
                             alert(response.message);
                             $('#addstore')[0].reset();
-                            fetch_stores();
+                            fetch_stores(); // Refresh table after adding
                         } else {
                             alert("Error: " + (response.message || "Unknown error"));
                         }
                     },
                     error: function(xhr) {
                         console.log("XHR error:", xhr.responseText);
-                        alert("Something went wrong. Please try again.");
+                        alert("Something went wrong while adding store.");
                     }
                 });
-
             });
 
-
-            //fetch stores table
+            // 2️⃣ FETCH STORES (GET)
             function fetch_stores() {
                 $.ajax({
                     url: 'api/fetchstore.php',
                     type: 'GET',
                     dataType: 'json',
                     success: function(response) {
+                        let rows = "";
                         if (response.status === "success") {
-                            let rows = "";
-                            response.data.forEach(function(store) {
+                            response.data.forEach(function(store, index) {
                                 rows += `
-                        <tr>
-                            <td>${store.sno}</td>
-                            <td>${store.stores_name}</td>
-                            <td>${store.stores_location}</td>
-                            <td>
-                                <button class="btn btn-sm btn-warning" onclick="editStore(${store.id})"><i class="fa fa-edit"></i></button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteStore(${store.id})"><i class="fa fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${store.stores_name}</td>
+                                <td>${store.stores_location}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning" onclick="editStore(${store.id})"><i class="fa fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger delete-btn" data-id="${store.id}"><i class="fa fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
                             });
-                            $('#fetch_stores').html(rows);
                         } else {
-                            $('#fetch_stores').html(`<tr><td colspan="4">${response.message}</td></tr>`);
+                            rows = `<tr><td colspan="4">${response.message}</td></tr>`;
                         }
+                        $('#fetch_stores').html(rows);
                     },
                     error: function(xhr) {
-                        console.log("Error fetching stores:", xhr.responseText);
+                        console.log("Fetch error:", xhr.responseText);
                         $('#fetch_stores').html(`<tr><td colspan="4">Failed to fetch stores</td></tr>`);
                     }
                 });
             }
+            fetch_stores(); // Call fetch on page load
 
+            // 3️⃣ DELETE STORE
+            $(document).on('click', '.delete-btn', function(e) {
+                e.preventDefault();
+                let id = $(this).data('id');
+
+                if (confirm("Are you sure you want to delete this store?")) {
+                    $.ajax({
+                        url: 'api/deletestore.php',
+                        type: 'POST',
+                        data: {
+                            id: id
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === "success") {
+                                alert(response.message);
+                                fetch_stores(); // Refresh table after deletion
+                            } else {
+                                alert("Error: " + response.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.log("Delete error:", xhr.responseText);
+                            alert("Something went wrong while deleting store.");
+                        }
+                    });
+                }
+            });
 
         });
     </script>
+
 
 
 </body>
