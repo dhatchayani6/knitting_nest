@@ -6,7 +6,7 @@ session_start();
 $host = "localhost";     // Database host
 $username = "root";      // Database username
 $password = "";          // Database password
-$database = "stockmanagement";       // Database name
+$database = "knitte_simats";       // Database name
 
 // Create connection
 $conn = new mysqli($host, $username, $password, $database);
