@@ -1,25 +1,28 @@
 <?php
+
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method, Access-Control-Allow-Origin");
 
-include "includes/config.php";
+include "../includes/config.php";
 
 try {
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         throw new Exception($_SERVER["REQUEST_METHOD"] . ' Method Not Allowed', 405);
     }
 
-    // Get values from form-data
-    $bioid = isset($_POST['bioid']) ? addslashes(trim($_POST['bioid'])) : null;
-    $password = isset($_POST['password']) ? addslashes(trim($_POST['password'])) : null;
+    // Get JSON input
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    $bioid = isset($input['bioid']) ? addslashes(trim($input['bioid'])) : null;
+    $password = isset($input['password']) ? addslashes(trim($input['password'])) : null;
 
     if (empty($bioid) || empty($password)) {
         throw new Exception('Missing Bio ID or Password', 400);
     }
 
-    $CheckUserQuery = "SELECT * FROM login WHERE bioid = '$bioid' AND password = '$password'";
+    $CheckUserQuery = "SELECT * FROM login WHERE bio_id = '$bioid' AND password = '$password'";
     $CheckUserQueryResults = mysqli_query($conn, $CheckUserQuery);
 
     if (mysqli_num_rows($CheckUserQueryResults) > 0) {
@@ -27,22 +30,19 @@ try {
 
         $AccountType = !empty($record["usertype"]) ? $record["usertype"] : "shopkeeper";
 
-        // Map user types to pages
-        $redirect_pages = [
-            "admin" => "admin/admin_dashboard.php",
-            "shopkeeper" => "shokeeper/shopkeeper_dashboard.php"
-        ];
+        // Store user info in session
+        $_SESSION['user_id']=$record['id'];
+        $_SESSION['bio_id'] = $record['bio_id'];
+        $_SESSION['usertype'] = $AccountType;
+        $_SESSION['name'] = $record['name'] ?? ''; // optional
+        $_SESSION['logged_in'] = true;
 
-        $redirect_url = isset($redirect_pages[$AccountType]) ? $redirect_pages[$AccountType] : "default_dashboard.php";
-
+        // Return login info without redirection URLs
         echo json_encode([
             'status' => 200,
             'message' => 'Login Success',
-            'user_id' => $record["u_id"],
-            'user_name' => $record["name"],
-            'bioid' => $record["bioid"],
-            'user_type' => $AccountType,
-            'redirect_url' => $redirect_url
+            'bio_id' => $record["bio_id"],
+            'usertype' => $AccountType
         ]);
     } else {
         echo json_encode(['status' => 401, 'message' => 'Invalid Bio ID or Password']);
