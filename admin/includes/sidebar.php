@@ -16,7 +16,7 @@
                 </li>
                 <li>
                     <a href="#">
-                      <i class="fa-solid fa-right-to-bracket"></i>Stores
+                     <i class="fa-solid fa-cart-shopping"></i>Stores
                         <i class="fa arrow"></i>
                     </a>
                     <ul class="sidebar-nav">
@@ -64,7 +64,7 @@
                 </li>
                 <li>
                     <a href="notification.php">
-                        <i class="fa fa-pencil-square-o"></i> Notification
+                 <i class="fa-solid fa-envelope"></i>Notification
                         
                     </a>
                     

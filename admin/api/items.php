@@ -80,7 +80,7 @@ if (!empty($missing_fields)) {
 
 // Prepare and bind
 $stmt = $conn->prepare("INSERT INTO items 
-    (store_name, store_id, item_name, item_code, item_quanitity, item_price, stock_level, items_image, created_at) 
+    (store_name, store_id, item_name, item_code, item_quantity, item_price, stock_level, items_image, created_at) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 $stmt->bind_param(
     "sisssddss",

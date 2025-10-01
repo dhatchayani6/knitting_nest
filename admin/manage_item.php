@@ -230,7 +230,7 @@ if (!isset($_SESSION['user_id'])) {
                 $('#item_name').val(item.item_name);
                 $('#item_code').val(item.item_code);
                 $('#stock_level').val(item.stock_level);
-               $('#item_quantity').val(item.item_quanitity);
+               $('#item_quantity').val(item.item_quantity);
 
                 $('#item_price').val(item.item_price);
             } else {
@@ -246,7 +246,7 @@ if (!isset($_SESSION['user_id'])) {
     // Save Changes - update item
     $('#saveChanges').click(function() {
         $.ajax({
-            url: 'api/update_item.php',
+            url: 'api/updateitemS.php',
             type: 'POST',
             data: $('#editItemForm').serialize(),
             dataType: 'json',
@@ -267,7 +267,7 @@ if (!isset($_SESSION['user_id'])) {
         if (!confirm("Are you sure you want to delete this item?")) return;
         const id = $(this).data('id');
         $.ajax({
-            url: 'api/delete_item.php',
+            url: 'api/deleteitems.php',
             type: 'POST',
             data: { id: id },
             dataType: 'json',

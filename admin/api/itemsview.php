@@ -7,7 +7,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 include __DIR__ .'/../../includes/config.php'; // Include database connection
 
 // Fetch all stores
-$sql = "SELECT id, store_name, item_name, item_code,item_quanitity,item_price, stock_level,created_at FROM items ORDER BY id ASC";
+$sql = "SELECT id, store_name, item_name, item_code,item_quantity,item_price, stock_level,created_at FROM items ORDER BY id ASC";
 $result = $conn->query($sql);
 
 
@@ -22,7 +22,7 @@ if ($result && $result->num_rows > 0) {
             "store_name" => $row['store_name'],
             "item_name" => $row['item_name'],
             "item_code" => $row['item_code'],
-            "item_quantity" => $row['item_quanitity'],
+            "item_quantity" => $row['item_quantity'],
             "item_price" => $row['item_price'],
              "item_price" => $row['item_price'],
               "stock_level" => $row['stock_level'],
