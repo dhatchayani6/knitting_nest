@@ -1,4 +1,3 @@
-
 <?php
 
 include('../includes/config.php'); // adjust path if needed
@@ -8,7 +7,22 @@ include('../includes/config.php'); // adjust path if needed
 //     header("Location: ../index.php");
 //     exit();
 // }
-?><!doctype html>
+
+
+// fetch all shops names
+$sql = "SELECT id, stores_name FROM shops";
+$result = $conn->query($sql);
+
+$shops = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $shops[] = $row;
+    }
+}
+?>
+
+
+<!doctype html>
 <html class="no-js" lang="en">
 
 <meta http-equiv="content-type" content="text/html;charset=utf-8" />
@@ -46,47 +60,50 @@ include('../includes/config.php'); // adjust path if needed
             <article class="content dashboard-page bg-white">
                 <section class="section">
                     <div class="container">
-                         <span class="fw-bold">ADD SHOPKEEPER</span>
-                        <form action="" id="externallogin" method="post" class="p-3">
+                        <span class="fw-bold">ADD SHOPKEEPER</span>
+                        <form action="" id="addshopkeeper" method="post" class="p-3">
                             <div class="row">
                                 <div class="col-md-6">
 
 
                                     <div class="mb-3">
                                         <label for="formFileDisabled" class="form-label">STORE NAME</label>
-                                        <select class="form-select" name="storename" required>
-                                            <option>Select menu</option>
-                                            <option value="Admin">Admin</option>
-                                            <option value="shopkeeper">shopkeeper</option>
-
+                                        <select class="form-select" name="shop_name" required>
+                                            <option value="">Select Store</option>
+                                            <?php foreach ($shops as $shop): ?>
+                                                <option value="<?php echo $shop['id']; ?>">
+                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
                                         </select>
+
                                     </div>
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="formFile" class="form-label">SHOPKEEPER NAME</label>
                                         <input class="form-control" type="text" name="shopkeeper_name" placeholder="Enter the shopkeeper name" required>
                                     </div>
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="formFile" class="form-label">SHOPKEEPER PASSWORD</label>
-                                        <input class="form-control" type="text" name="shopkeeper_name" placeholder="Enter the shopkeeper name" required>
+                                        <input class="form-control" type="text" name="password" placeholder="Enter the shopkeeper name" required>
                                     </div>
 
 
 
                                 </div>
                                 <div class="col-md-6">
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">STORE LOCATION</label>
-                                        <input class="form-control" type="text" name="storelocation" placeholder="Enter the store location" required>
+                                        <input class="form-control" type="text" name="store_location" placeholder="Enter the store location" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">SHOPKEEPER BIO_ID</label>
-                                        <input class="form-control" type="text" name="shopkeeper_name" placeholder="Enter the shopkeeper name" required>
+                                        <input class="form-control" type="text" name="shopkeeper_bioid" placeholder="Enter the shopkeeper name" required>
                                     </div>
 
-                                    
+
 
                                 </div>
-                                
+
 
 
 
@@ -106,7 +123,7 @@ include('../includes/config.php'); // adjust path if needed
 
                                 </div> -->
                                 <div class="col-12  text-center ">
-                                    <button type="submit" name="admin_login" class="btn btn-primary w-35">Add Shopkeeper</button>
+                                    <button type="submit" name="shopkeeper" class="btn btn-primary w-35">Add Shopkeeper</button>
                                 </div>
 
                             </div>
@@ -122,7 +139,7 @@ include('../includes/config.php'); // adjust path if needed
                 <section class="section">
                     <div class="container">
                         <div class="row">
-                            <table class="table text-center"  >
+                            <table class="table text-center">
                                 <thead>
                                     <tr>
                                         <th scope="col">s.no</th>
@@ -131,12 +148,12 @@ include('../includes/config.php'); // adjust path if needed
                                         <th scope="col">shopkeeper name</th>
                                         <th scope="col">shopkeeper bio_id</th>
                                         <th scope="col">shopkeeper password</th>
-                                         <th scope="col">Actions</th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody  id="add_shopkeeper">
-                                    
-                                    
+                                <tbody id="fetch_shopkeeper">
+
+
                                 </tbody>
                             </table>
                         </div>
@@ -157,134 +174,121 @@ include('../includes/config.php'); // adjust path if needed
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
 
-  <script>
-$(document).ready(function () {
+    <script>
+        $(document).ready(function() {
 
-    // =====================
-    // ADD FORM SUBMIT
-    // =====================
-    $('#externallogin').on('submit', function (e) {
-        e.preventDefault();
+            $(document).ready(function() {
+                // 1️⃣ ADD SHOPKEEPER
+                $('#addshopkeeper').on('submit', function(e) {
+                    e.preventDefault();
 
-        const externalname = $('input[name="externalname"]').val();
-        const password = $('input[name="password"]').val();
-        const usertype = $('select[name="usertype"]').val();
+                    const shop_id = $('select[name="shop_name"]').val(); // get selected shop id
+                    const shop_name = $('select[name="shop_name"] option:selected').text().trim(); // get selected shop name
+                    const shopkeeper_name = $('input[name="shopkeeper_name"]').val();
+                    const password = $('input[name="password"]').val();
+                    const store_location = $('input[name="store_location"]').val();
+                    const shopkeeper_bioid = $('input[name="shopkeeper_bioid"]').val();
+                    const usertype = "Shopkeeper"; // static for now
 
-        const formData = {
-            externalname: externalname,
-            password: password,
-            usertype: usertype
-        };
+                    $.ajax({
+                        url: 'api/shopkeeper.php',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {
+                            shop_id: shop_id,
+                            shop_name: shop_name,
+                            shopkeeper_name: shopkeeper_name,
+                            password: password,
+                            store_location: store_location,
+                            shopkeeper_bioid: shopkeeper_bioid,
+                            usertype: usertype
+                        },
+                        success: function(response) {
+                            console.log("Add response:", response);
+                            if (response.status === "success") {
+                                alert(response.message);
+                                $('#addshopkeeper')[0].reset();
+                                // fetch_shopkeepers(); // you can write a function to refresh table
+                            } else {
+                                alert("Error: " + (response.message || "Unknown error"));
+                            }
+                        },
+                        error: function(xhr) {
+                            console.log("XHR error:", xhr.responseText);
+                            alert("Something went wrong while adding shopkeeper.");
+                        }
+                    });
+                });
+            });
 
-        $.ajax({
-            url: 'api/adminlogin.php',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(formData),
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    $('#externallogin')[0].reset();
-                    fetchLoginDetails(); // refresh table after adding
-                } else {
-                    if (Array.isArray(response.message)) {
-                        alert("Error:\n" + response.message.join("\n"));
-                    } else {
-                        alert("Error: " + response.message);
-                    }
-                }
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText);
-                alert("Something went wrong. Please try again.");
-            }
-        });
-    });
-
-    // =====================
-    // FETCH TABLE DATA
-    // =====================
-    function fetchLoginDetails() {
-        $.ajax({
-            url: 'api/fetchlogin.php',
-            type: 'GET',
-            dataType: 'json',
-            success: function (response) {
-                if (response.status === true && Array.isArray(response.data)) {
-                    let tableRows = '';
-                    response.data.forEach(function (user, index) {
-                        tableRows += `
+            // 2️⃣ FETCH STORES (GET)
+            function fetch_shopkeeper() {
+                $.ajax({
+                    url: 'api/fetchshopkeeper.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        let rows = "";
+                        if (response.status === "success") {
+                            response.data.forEach(function(shopkeeper, index) {
+                                rows += `
                             <tr>
-                                <th scope="row">${user.sno}</th>
-                                <td>${user.email}</td>
-                                <td>${user.password}</td>
-                                <td>${user.usertype}</td>  
+                                <td>${index + 1}</td>
+                                <td>${shopkeeper.shop_name}</td>
+                                <td>${shopkeeper.store_location}</td>
+                                <td>${shopkeeper.shopkeeper_name}</td>
+                                <td>${shopkeeper.shopkeeper_bioid}</td>
+                                <td>${shopkeeper.password}</td>
                                 <td>
-                                    <button class="btn btn-danger btn-sm delete-btn" data-id="${user.id}">
-                                        <i class="fa fa-trash"></i> 
-                                    </button>
+                                   
+                                    <button class="btn btn-sm btn-danger delete-btn" data-id="${shopkeeper.shopkeeper_id}"><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
-                    });
-                    $('#loginTableBody').html(tableRows);
-                } else {
-                    $('#loginTableBody').html(`
-                        <tr><td colspan="7" class="text-center">No data found</td></tr>
-                    `);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Fetch Error:", error);
-                $('#loginTableBody').html(`
-                    <tr><td colspan="5" class="text-danger text-center">Something went wrong</td></tr>
-                `);
+                            });
+                        } else {
+                            rows = `<tr><td colspan="7">${response.message}</td></tr>`;
+                        }
+                        $('#fetch_shopkeeper').html(rows);
+                    },
+                    error: function(xhr) {
+                        console.log("Fetch error:", xhr.responseText);
+                        $('#fetch_shopkeeper').html(`<tr><td colspan="4">Failed to fetch stores</td></tr>`);
+                    }
+                });
             }
-        });
-    }
-
-    // =====================
-    // DELETE BUTTON CLICK
-    // =====================
-    $(document).on('click', '.delete-btn', function (e) {
-         e.preventDefault();
-        let id = $(this).data('id');
-
-        if (!confirm("Are you sure you want to delete this record?")) {
-            return;
-        }
-
-        let formData = new FormData();
-        formData.append('id', id);
-
-        $.ajax({
-            url: 'api/deletelogin.php',
-            type: 'POST',
-             dataType: 'json',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    // fetchLoginDetails(); // refresh after delete
-                     location.reload();
-            
-                } else {
-                    alert("Error: " + response.message);
-                }
-            },
+            fetch_shopkeeper(); // Call fetch on page load
            
+            // 3️⃣ DELETE STORE
+            $(document).on('click', '.delete-btn', function(e) {
+                e.preventDefault();
+                let id = $(this).data('id');
+
+                if (confirm("Are you sure you want to delete this store?")) {
+                    $.ajax({
+                        url: 'api/deleteshopkeeper.php',
+                        type: 'POST',
+                        data: {
+                            id: id
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === "success") {
+                                alert(response.message);
+                                fetch_shopkeeper(); // Refresh table after deletion
+                            } else {
+                                alert("Error: " + response.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.log("Delete error:", xhr.responseText);
+                            alert("Something went wrong while deleting store.");
+                        }
+                    });
+                }
+            });
         });
-    });
-
-    // =====================
-    // INITIAL LOAD
-    // =====================
-    fetchLoginDetails();
-
-});
-</script>
+    </script>
 
 
 </body>

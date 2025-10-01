@@ -1,4 +1,3 @@
-
 <?php
 
 include('../includes/config.php'); // adjust path if needed
@@ -8,7 +7,21 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
     exit();
 }
-?><!doctype html>
+
+// fetch all shops names
+$sql = "SELECT id, stores_name FROM shops";
+$result = $conn->query($sql);
+
+$shops = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $shops[] = $row;
+    }
+}
+?>
+
+
+<!doctype html>
 <html class="no-js" lang="en">
 
 <meta http-equiv="content-type" content="text/html;charset=utf-8" />
@@ -46,57 +59,59 @@ if (!isset($_SESSION['user_id'])) {
             <article class="content dashboard-page bg-white">
                 <section class="section">
                     <div class="container">
-                         <span class="fw-bold">ADD ITEMS</span>
-                        <form action="" id="externallogin" method="post" class="p-3">
+                        <span class="fw-bold">ADD ITEMS</span>
+                        <form action="" id="add_items" method="post" class="p-3" enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="formFileDisabled" class="form-label">STORE NAME</label>
+                                        <select class="form-select" name="store_name" required>
+                                            <option value="">Select Store</option>
+                                            <?php foreach ($shops as $shop): ?>
+                                                <option value="<?php echo $shop['id']; ?>">
+                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                    </div>
 
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">ITEMS NAME</label>
                                         <input class="form-control" type="text" name="item_name" placeholder="Enter the Item name" required>
                                     </div>
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="formFile" class="form-label">ITEMS CODE</label>
                                         <input class="form-control" type="text" name="item_code" placeholder="Enter the Item code" required>
                                     </div>
-                                     <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">MINIMUM STOCK LEVEL</label>
-                                        <input class="form-control" type="text" name="stock_level" placeholder="Enter the Minimum stock level" required>
+                                    <div class="mb-3">
+                                        <label for="formFileMultiple" class="form-label">ITEM IMAGE</label>
+                                        <input class="form-control" type="file" name="items_image" placeholder="Enter the Minimum stock level" required>
                                     </div>
 
                                 </div>
                                 <div class="col-md-6">
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="formFile" class="form-label">ITEMS QUANTITY</label>
-                                        <input class="form-control" type="text" name="item_quanitity" placeholder="Enter the item quanitity" required>
+                                        <input class="form-control" type="text" name="item_quantity" placeholder="Enter the Item quanitity" required>
                                     </div>
 
 
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">ITEMS PRICE</label>
-                                        <input class="form-control" type="text" name="items_price" placeholder="Enter the item price" required>
+                                        <input class="form-control" type="text" name="item_price" placeholder="Enter the Item price" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="formFileMultiple" class="form-label">MINIMUM STOCK LEVEL</label>
+                                        <input class="form-control" type="text" name="stock_level" placeholder="Enter the Minimum stock level" required>
                                     </div>
                                 </div>
 
 
 
-
-                                <!-- <div class="col-md-6">
-
-
-                                    <div class="mb-3">
-                                        <label for="formFileDisabled" class="form-label">Usertype</label>
-                                        <select class="form-select" name="usertype" required>
-                                            <option>Select menu</option>
-                                            <option value="Admin">Admin</option>
-                                            <option value="External"></option>
-
-                                        </select>
-                                    </div>
-
-                                </div> -->
                                 <div class="col-12  text-center ">
-                                    <button type="submit" name="admin_login" class="btn btn-primary w-35">Add Store</button>
+                                    <button type="submit" name="additems" class="btn btn-primary w-35">Add Store</button>
                                 </div>
 
                             </div>
@@ -109,7 +124,7 @@ if (!isset($_SESSION['user_id'])) {
                 <!-- table start -->
 
 
-               
+
             </article>
             <!-- table end -->
 
@@ -125,134 +140,55 @@ if (!isset($_SESSION['user_id'])) {
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
 
-  <script>
-$(document).ready(function () {
+    <script>
+        $(document).ready(function() {
 
-    // =====================
-    // ADD FORM SUBMIT
-    // =====================
-    $('#externallogin').on('submit', function (e) {
-        e.preventDefault();
+            $(document).ready(function() {
+                // 1️⃣ ADD items
+                $('#add_items').on('submit', function(e) {
+                    e.preventDefault();
 
-        const externalname = $('input[name="externalname"]').val();
-        const password = $('input[name="password"]').val();
-        const usertype = $('select[name="usertype"]').val();
+                    // Get selected store id and name
+                    const store_id = $('select[name="store_name"]').val();
+                    const store_name = $('select[name="store_name"] option:selected').text().trim();
 
-        const formData = {
-            externalname: externalname,
-            password: password,
-            usertype: usertype
-        };
+                    // Create a FormData object, before i create const with each input but image not value is a files means we use formdata
+                    let formData = new FormData(this); // 'this' refers to the form element
 
-        $.ajax({
-            url: 'api/adminlogin.php',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(formData),
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    $('#externallogin')[0].reset();
-                    fetchLoginDetails(); // refresh table after adding
-                } else {
-                    if (Array.isArray(response.message)) {
-                        alert("Error:\n" + response.message.join("\n"));
-                    } else {
-                        alert("Error: " + response.message);
-                    }
-                }
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText);
-                alert("Something went wrong. Please try again.");
-            }
-        });
-    });
+                    formData.append('store_id', store_id); // add store_id
+                    formData.append('store_name', store_name); // add store_name
 
-    // =====================
-    // FETCH TABLE DATA
-    // =====================
-    function fetchLoginDetails() {
-        $.ajax({
-            url: 'api/fetchlogin.php',
-            type: 'GET',
-            dataType: 'json',
-            success: function (response) {
-                if (response.status === true && Array.isArray(response.data)) {
-                    let tableRows = '';
-                    response.data.forEach(function (user, index) {
-                        tableRows += `
-                            <tr>
-                                <th scope="row">${user.sno}</th>
-                                <td>${user.email}</td>
-                                <td>${user.password}</td>
-                                <td>${user.usertype}</td>  
-                                <td>
-                                    <button class="btn btn-danger btn-sm delete-btn" data-id="${user.id}">
-                                        <i class="fa fa-trash"></i> 
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
+                    $.ajax({
+                        url: 'api/items.php',
+                        type: 'POST',
+                        data: formData,
+                        dataType: 'json',
+                        contentType: false, // important for file upload
+                        processData: false, // important for file upload
+
+                        success: function(response) {
+                            console.log("Add response:", response);
+                            if (response.status === "success") {
+                                alert(response.message);
+                                $('#add_items')[0].reset();
+                                // fetch_shopkeepers(); // you can write a function to refresh table
+                            } else {
+                                alert("Error: " + (response.message || "Unknown error"));
+                            }
+                        },
+                        error: function(xhr) {
+                            console.log("XHR error:", xhr.responseText);
+                            alert("Something went wrong while adding Items.");
+                        }
                     });
-                    $('#loginTableBody').html(tableRows);
-                } else {
-                    $('#loginTableBody').html(`
-                        <tr><td colspan="5" class="text-center">No data found</td></tr>
-                    `);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Fetch Error:", error);
-                $('#loginTableBody').html(`
-                    <tr><td colspan="5" class="text-danger text-center">Something went wrong</td></tr>
-                `);
-            }
+                });
+            });
+
+
+
+
         });
-    }
-
-    // =====================
-    // DELETE BUTTON CLICK
-    // =====================
-    $(document).on('click', '.delete-btn', function (e) {
-         e.preventDefault();
-        let id = $(this).data('id');
-
-        if (!confirm("Are you sure you want to delete this record?")) {
-            return;
-        }
-
-        let formData = new FormData();
-        formData.append('id', id);
-
-        $.ajax({
-            url: 'api/deletelogin.php',
-            type: 'POST',
-             dataType: 'json',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    // fetchLoginDetails(); // refresh after delete
-                     location.reload();
-            
-                } else {
-                    alert("Error: " + response.message);
-                }
-            },
-           
-        });
-    });
-
-    // =====================
-    // INITIAL LOAD
-    // =====================
-    fetchLoginDetails();
-
-});
-</script>
+    </script>
 
 
 </body>

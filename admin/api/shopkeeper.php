@@ -16,27 +16,25 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Get POST data with defaults
-$shopkeeper_bioid   = isset($_POST['shopkeeper_bioid']) ? $_POST['shopkeeper_bioid'] : null;
-$shopkeeper_name    = isset($_POST['shopkeeper_name']) ? $_POST['shopkeeper_name'] : null;
-$password           = isset($_POST['password']) ? $_POST['password'] : null;
-$store_location     = isset($_POST['store_location']) ? $_POST['store_location'] : null;
-$shop_name          = isset($_POST['shop_name']) ? $_POST['shop_name'] : null;
-$shop_id            = isset($_POST['shop_id']) ? $_POST['shop_id'] : null;
-$usertype           = isset($_POST['usertype']) && !empty($_POST['usertype']) ? $_POST['usertype'] : "Shopkeeper";
+$shopkeeper_bioid   = $_POST['shopkeeper_bioid'] ?? null;
+$shopkeeper_name    = $_POST['shopkeeper_name'] ?? null;
+$password           = $_POST['password'] ?? null;
+$store_location     = $_POST['store_location'] ?? null;
+$shop_name          = $_POST['shop_name'] ?? null;
+$shop_id            = $_POST['shop_id'] ?? null;
+$usertype           = $_POST['usertype'] ?? "shopkeeper";
 
-// Validate required fields (id is auto-increment so we skip it)
+// Validate required fields
 $missing_fields = [];
-
 if (!$shopkeeper_bioid)   $missing_fields[] = "shopkeeper_bioid";
 if (!$shopkeeper_name)    $missing_fields[] = "shopkeeper_name";
 if (!$password)           $missing_fields[] = "password";
 if (!$store_location)     $missing_fields[] = "store_location";
 if (!$shop_name)          $missing_fields[] = "shop_name";
 if (!$shop_id)            $missing_fields[] = "shop_id";
-if (!$usertype)           $missing_fields[] = "usertype";
 
 if (!empty($missing_fields)) {
-    http_response_code(400); // Bad Request
+    http_response_code(400);
     echo json_encode([
         "status" => "error",
         "message" => "Missing required fields",
@@ -45,24 +43,39 @@ if (!empty($missing_fields)) {
     exit();
 }
 
-// Prepare and bind
+// ✅ Insert into shopkeeper table
 $stmt = $conn->prepare("INSERT INTO shopkeeper 
     (shopkeeper_bioid, shopkeeper_name, password, store_location, shop_name, shop_id, usertype) 
     VALUES (?, ?, ?, ?, ?, ?, ?)");
 $stmt->bind_param("sssssss", $shopkeeper_bioid, $shopkeeper_name, $password, $store_location, $shop_name, $shop_id, $usertype);
 
-// Execute
 if ($stmt->execute()) {
-    echo json_encode([
-        "status" => "success",
-        "message" => "Shopkeeper inserted successfully",
-        "id" => $stmt->insert_id
-    ]);
+    $new_id = $stmt->insert_id;
+
+    // ✅ Also insert into login table
+    $stmt2 = $conn->prepare("INSERT INTO login (bio_id, password, usertype) VALUES (?, ?, ?)");
+    $stmt2->bind_param("sss", $shopkeeper_bioid, $password, $usertype);
+
+    if ($stmt2->execute()) {
+        echo json_encode([
+            "status" => "success",
+            "message" => "Shopkeeper inserted successfully & login created",
+            "id" => $new_id
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Shopkeeper saved but login insert failed: " . $stmt2->error
+        ]);
+    }
+    $stmt2->close();
+
 } else {
-    http_response_code(500); // Internal Server Error
+    http_response_code(500);
     echo json_encode([
         "status" => "error",
-        "message" => "Insertion failed: " . $stmt->error
+        "message" => "Shopkeeper insert failed: " . $stmt->error
     ]);
 }
 

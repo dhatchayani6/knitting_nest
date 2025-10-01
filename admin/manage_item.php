@@ -28,6 +28,7 @@ if (!isset($_SESSION['user_id'])) {
     <link rel="stylesheet" id="theme-style" href="css/app.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css" />
 
 </head>
 
@@ -44,6 +45,61 @@ if (!isset($_SESSION['user_id'])) {
             <div class="sidebar-overlay" id="sidebar-overlay"></div>
             <div class="sidebar-mobile-menu-handle" id="sidebar-mobile-menu-handle"></div>
             <div class="mobile-menu-handle"></div>
+
+
+      
+<!-- Edit Item Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" aria-labelledby="exampleModalCenterLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterLabel">Edit Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editItemForm">
+          <input type="hidden" id="editItemId" name="id">
+
+          <div class="mb-3">
+            <label for="store_name" class="form-label">Store Name</label>
+          <input type="text" class="form-control" id="store_name" name="store_name">
+          </div>
+
+          <div class="mb-3">
+            <label for="item_name" class="form-label">Item Name</label>
+            <input type="text" class="form-control" id="item_name" name="item_name" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="item_code" class="form-label">Item Code</label>
+            <input type="text" class="form-control" id="item_code" name="item_code" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="stock_level" class="form-label">Stock Level</label>
+            <input type="number" class="form-control" id="stock_level" name="stock_level" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="item_quantity" class="form-label">Item Quantity</label>
+            <input type="number" class="form-control" id="item_quantity" name="item_quantity" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="item_price" class="form-label">Item Price</label>
+            <input type="number" class="form-control" id="item_price" name="item_price" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveChanges">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
             <!-- center content start -->
             <article class="content dashboard-page bg-white">
 
@@ -58,28 +114,31 @@ if (!isset($_SESSION['user_id'])) {
                 <section class="section">
                     <div class="container">
                         <div class="row">
-                           <div class="table-responsive">
-                             <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">S.No</th>
-                                        <th scope="col">ITEMS NAME</th>
-                                        <th scope="col">ITEMS CODE</th>
-                                        <th scope="col">MINIMUM STOCK LEVEL</th>
-                                        <th scope="col">ITEMS QUANTITY</th>
-                                        <th scope="col"> ITEMS PRICE</th>
-                                        
+                            <div class="table-responsive">
+                                <table class="table " id="table_id" class="display">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">S.No</th>
+                                            <th scope="col">STORE NAME</th>
+                                            <th scope="col">ITEMS NAME</th>
+                                            <th scope="col">ITEMS CODE</th>
+                                            <th scope="col">STOCK LEVEL</th>
+                                            <th scope="col">ITEMS QUANTITY</th>
+                                            <th scope="col">ITEMS PRICE</th>
+                                            <th scope="col">CREATED AT</th>
+                                             <th scope="col">ACTIONS </th>
 
 
 
-                                    </tr>
-                                </thead>
-                                <tbody class="manageitems" id="manageitems">
+
+                                        </tr>
+                                    </thead>
+                                    <tbody class="manageitems text-center" id="manageitems">
 
 
-                                </tbody>
-                            </table>
-                           </div>
+                                    </tbody>
+                                </table>
+                            </div>
 
                             <div id="pagination" class="mt-3"></div>
 
@@ -99,116 +158,130 @@ if (!isset($_SESSION['user_id'])) {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
+    <script src="https://cdn.datatables.net/2.3.4/js/dataTables.js"></script>
 
 
     <script>
-       $(document).ready(function () {
-    let limit = 10;
+       $(document).ready(function() {
 
-    function fetchstudentmarks(page = 1) {
+    // Fetch items and populate DataTable
+    function fetchItems() {
         $.ajax({
-            url: "api/students_marksdetails.php",
-            type: "GET",
-            data: {
-                page: page,
-                limit: limit
-            },
-            dataType: "json",
-            success: function (response) {
-                if (response.status === "Fetch students marks success") {
-                    let rows = "";
-                    $.each(response.data, function (index, student) {
+            url: 'api/itemsview.php',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                let rows = "";
+                if (response.status === "success") {
+                    response.data.forEach(function(item) {
                         rows += `
                             <tr>
-                                <td>${student.sno}</td>
-                                <td>${student.reg_no}</td>
-                                <td>${student.student_name}</td>
-                                <td>${student.subject_code}</td>
-                                <td>${student.subject_name}</td>
-                                <td>${student.date}</td>
-                                <td>${student.mark1}</td>
-                                <td>${student.mark2}</td>
-                                <td>${student.mark3}</td>
-                                <td>${student.mark4}</td>
-                                <td>${student.mark5}</td>
-                                <td>${student.mark6}</td>
-                                <td>${student.total}</td>
-                            </tr>
-                        `;
+                                <td>${item.sno}</td>
+                                <td>${item.store_name}</td>
+                                <td>${item.item_name}</td>
+                                <td>${item.item_code}</td>
+                                <td>${item.stock_level}</td>
+                                <td>${item.item_quantity}</td>
+                                <td>${item.item_price}</td>
+                                <td>${item.created_at}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-primary edit-item" data-id="${item.id}" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-item" data-id="${item.id}">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>`;
                     });
-                    $("#studentmarks").html(rows);
-
-                    // build pagination
-                    let paginationHTML = "";
-                    if (response.total_pages > 1) {
-                        // Previous button
-                        paginationHTML += `<button class="btn btn-sm btn-light page-btn" data-page="${response.current_page - 1}" ${response.current_page === 1 ? 'disabled' : ''}>Prev</button> `;
-
-                        // Numbered buttons
-                        for (let i = 1; i <= response.total_pages; i++) {
-                            paginationHTML += `<button class="btn btn-sm ${i === response.current_page ? 'btn-primary' : 'btn-light'} page-btn" data-page="${i}">${i}</button> `;
-                        }
-
-                        // Next button
-                        paginationHTML += `<button class="btn btn-sm btn-light page-btn" data-page="${response.current_page + 1}" ${response.current_page === response.total_pages ? 'disabled' : ''}>Next</button>`;
-                    }
-                    $("#pagination").html(paginationHTML);
-
                 } else {
-                    $("#studentmarks").html(`
-                        <tr>
-                            <td colspan="13" class="text-center text-danger">No records found</td>
-                        </tr>
-                    `);
-                    $("#pagination").html("");
+                    rows = `<tr><td colspan="9" class="text-center">${response.message}</td></tr>`;
                 }
+                $('#manageitems').html(rows);
+
+                // Destroy old DataTable before reinit
+                if ($.fn.DataTable.isDataTable('#table_id')) {
+                    $('#table_id').DataTable().destroy();
+                }
+                $('#table_id').DataTable();
             },
-            error: function (xhr, status, error) {
-                console.log("Error:", error);
-                $("#studentmarks").html(`
-                    <tr>
-                        <td colspan="13" class="text-center text-danger">Something went wrong!</td>
-                    </tr>
-                `);
-                $("#pagination").html("");
+            error: function(xhr) {
+                console.log("Fetch error:", xhr.responseText);
+                $('#manageitems').html(`<tr><td colspan="9" class="text-center">Failed to fetch items</td></tr>`);
             }
         });
     }
 
-    // Initial fetch
-    fetchstudentmarks(1);
+    fetchItems(); // Load on page start
 
-    // handle pagination button click
-    $(document).on("click", ".page-btn", function () {
-        let page = $(this).data("page");
-        fetchstudentmarks(page);
+    //edit modal 
+    $(document).on('click', '.edit-item', function() {
+    const id = $(this).data('id');
+    $.ajax({
+        url: 'api/get_singleitems.php',
+        type: 'POST',
+        data: { id: id },
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === "success") {
+                const item = response.data;
+                $('#editItemId').val(item.id);
+                $('#store_name').val(item.store_name);
+                $('#item_name').val(item.item_name);
+                $('#item_code').val(item.item_code);
+                $('#stock_level').val(item.stock_level);
+               $('#item_quantity').val(item.item_quanitity);
+
+                $('#item_price').val(item.item_price);
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function(xhr) {
+            console.log("Error:", xhr.responseText);
+        }
     });
 });
 
-  //DELETE ALL COURSE DATA
-       $(document).on('click', '#deleteAllBtn', function() {
-    if (!confirm("Are you sure you want to delete ALL courses? This action cannot be undone.")) {
-        return;
-    }
-
-    $.ajax({
-        url: 'api/studentsmarks_delete.php',
-        type: 'POST', // <-- change from DELETE to POST
-        dataType: 'json',
-        success: function(response) {
-            if (response.status === 'success') {
-                alert(response.message);
-                // fetchstudentmarks(1); // reload first page
-                location.reload(); // refresh entire page
-            } else {
-                alert("Error: " + response.message);
+    // Save Changes - update item
+    $('#saveChanges').click(function() {
+        $.ajax({
+            url: 'api/update_item.php',
+            type: 'POST',
+            data: $('#editItemForm').serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === "success") {
+                    $('#exampleModalCenter').modal('hide');
+                    fetchItems(); // Reload table
+                    alert("Item updated successfully");
+                } else {
+                    alert(response.message);
+                }
             }
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr.responseText); // Debug invalid JSON
-            alert("An error occurred: " + error);
-        }
+        });
     });
+
+    // Delete Item
+    $(document).on('click', '.delete-item', function() {
+        if (!confirm("Are you sure you want to delete this item?")) return;
+        const id = $(this).data('id');
+        $.ajax({
+            url: 'api/delete_item.php',
+            type: 'POST',
+            data: { id: id },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === "success") {
+                    fetchItems();
+                    alert("Item deleted successfully");
+                } else {
+                    alert(response.message);
+                }
+            }
+        });
+    });
+
 });
 
     </script>

@@ -8,7 +8,21 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
     exit();
 }
-?><!doctype html>
+
+// fetch all shops names
+$sql = "SELECT id, stores_name FROM shops";
+$result = $conn->query($sql);
+
+$shops = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $shops[] = $row;
+    }
+}
+?>
+
+
+<!doctype html>
 <html class="no-js" lang="en">
 
 <meta http-equiv="content-type" content="text/html;charset=utf-8" />
@@ -61,7 +75,14 @@ if (!isset($_SESSION['user_id'])) {
                                     </div>
                                      <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">FROM STORE </label>
-                                        <input class="form-control" type="text" name="from_store" placeholder="Enter the from store" required>
+                                        <select class="form-select" name="store_name" required>
+                                            <option value="">Select Store</option>
+                                            <?php foreach ($shops as $shop): ?>
+                                                <option value="<?php echo $shop['id']; ?>">
+                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
 
                                 </div>
@@ -78,7 +99,14 @@ if (!isset($_SESSION['user_id'])) {
                                     </div>
                                      <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">TO STORE </label>
-                                        <input class="form-control" type="text" name="to_store" placeholder="Enter the to store" required>
+                                        <select class="form-select" name="store_name" required>
+                                            <option value="">Select Store</option>
+                                            <?php foreach ($shops as $shop): ?>
+                                                <option value="<?php echo $shop['id']; ?>">
+                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                 </div>
 

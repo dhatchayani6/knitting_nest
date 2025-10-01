@@ -188,7 +188,7 @@ include('../includes/config.php'); // adjust path if needed
                                 <td>${store.stores_name}</td>
                                 <td>${store.stores_location}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning" onclick="editStore(${store.id})"><i class="fa fa-edit"></i></button>
+                                    
                                     <button class="btn btn-sm btn-danger delete-btn" data-id="${store.id}"><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
