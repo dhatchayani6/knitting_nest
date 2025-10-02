@@ -2,12 +2,6 @@
 
 include('../includes/config.php'); // adjust path if needed
 
-
-// If user is not logged in, redirect to login page
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
-    exit();
-}
 ?>
 
 <!doctype html>
@@ -26,8 +20,11 @@ if (!isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="css/vendor.css">
     <link rel="stylesheet" id="theme-style" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css" />
 
 </head>
@@ -45,249 +42,311 @@ if (!isset($_SESSION['user_id'])) {
             <div class="sidebar-overlay" id="sidebar-overlay"></div>
             <div class="sidebar-mobile-menu-handle" id="sidebar-mobile-menu-handle"></div>
             <div class="mobile-menu-handle"></div>
-
-
-      
-<!-- Edit Item Modal -->
-<div class="modal fade" id="exampleModalCenter" tabindex="-1" aria-labelledby="exampleModalCenterLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalCenterLabel">Edit Item</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="editItemForm">
-          <input type="hidden" id="editItemId" name="id">
-
-          <div class="mb-3">
-            <label for="store_name" class="form-label">Store Name</label>
-          <input type="text" class="form-control" id="store_name" name="store_name">
-          </div>
-
-          <div class="mb-3">
-            <label for="item_name" class="form-label">Item Name</label>
-            <input type="text" class="form-control" id="item_name" name="item_name" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="item_code" class="form-label">Item Code</label>
-            <input type="text" class="form-control" id="item_code" name="item_code" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="stock_level" class="form-label">Stock Level</label>
-            <input type="number" class="form-control" id="stock_level" name="stock_level" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="item_quantity" class="form-label">Item Quantity</label>
-            <input type="number" class="form-control" id="item_quantity" name="item_quantity" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="item_price" class="form-label">Item Price</label>
-            <input type="number" class="form-control" id="item_price" name="item_price" required>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="saveChanges">Save Changes</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
             <!-- center content start -->
             <article class="content dashboard-page bg-white">
 
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">MANAGE ITEMS</h5>
                     <!-- <button id="deleteAllBtn" class="btn btn-danger btn-sm">
                         <i class="fa fa-trash"></i> Delete All
                     </button> -->
                 </div>
                 <!-- table start -->
+                <!-- table start -->
                 <section class="section">
                     <div class="container">
+
                         <div class="row">
-                            <div class="table-responsive">
-                                <table class="table " id="table_id" class="display">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">S.No</th>
-                                            <th scope="col">STORE NAME</th>
-                                            <th scope="col">ITEMS NAME</th>
-                                            <th scope="col">ITEMS CODE</th>
-                                            <th scope="col">STOCK LEVEL</th>
-                                            <th scope="col">ITEMS QUANTITY</th>
-                                            <th scope="col">ITEMS PRICE</th>
-                                            <th scope="col">CREATED AT</th>
-                                             <th scope="col">ACTIONS </th>
 
+                            <!-- Card Wrapper -->
+                            <div class="card shadow-sm rounded-3 border p-3">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="mb-3">MANAGE ITEMS</h5>
+                                    <div class="mb-3">
+                                        <input type="text" id="searchInput" class="form-control"
+                                            placeholder="Search items...">
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="table_id">
+                                        <thead class="table-light">
+                                            <tr class="text-center">
+                                                <th>S.No</th>
+                                                <th>STORE NAME</th>
+                                                <th>ITEMS NAME</th>
+                                                <th>ITEMS CODE</th>
+                                                <th>STOCK LEVEL</th>
+                                                <th>ITEMS QUANTITY</th>
+                                                <th>ITEMS PRICE</th>
+                                                <th>CREATED AT</th>
+                                                <th>ACTIONS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="manageitems text-center" id="manageitems">
+                                            <!-- Rows populated by AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
 
-
-
-                                        </tr>
-                                    </thead>
-                                    <tbody class="manageitems text-center" id="manageitems">
-
-
-                                    </tbody>
-                                </table>
+                                <!-- Pagination (if any) -->
+                                <div id="pagination" class="mt-3"></div>
                             </div>
-
-                            <div id="pagination" class="mt-3"></div>
-
                         </div>
                     </div>
                 </section>
                 <!-- table end -->
+
+                <!-- table end -->
             </article>
 
 
+            <!-- edit model start -->
+            <div class="modal fade" id="exampleModalCenter" tabindex="-1" aria-labelledby="exampleModalCenterLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalCenterLabel">Edit Item</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editItemForm">
+                                <input type="hidden" id="editItemId" name="id">
 
+                                <div class="mb-3">
+                                    <label for="store_name" class="form-label">Store Name</label>
+                                    <input type="text" class="form-control" id="store_name" name="store_name">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="item_name" class="form-label">Item Name</label>
+                                    <input type="text" class="form-control" id="item_name" name="item_name" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="item_code" class="form-label">Item Code</label>
+                                    <input type="text" class="form-control" id="item_code" name="item_code" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="stock_level" class="form-label">Stock Level</label>
+                                    <input type="number" class="form-control" id="stock_level" name="stock_level"
+                                        required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="item_quantity" class="form-label">Item Quantity</label>
+                                    <input type="number" class="form-control" id="item_quantity" name="item_quantity"
+                                        required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="item_price" class="form-label">Item Price</label>
+                                    <input type="number" class="form-control" id="item_price" name="item_price"
+                                        required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="saveChanges">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- edit model end -->
 
         </div>
     </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
     <script src="https://cdn.datatables.net/2.3.4/js/dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 
     <script>
-       $(document).ready(function() {
+        $(document).ready(function () {
 
-    // Fetch items and populate DataTable
-    function fetchItems() {
-        $.ajax({
-            url: 'api/itemsview.php',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                let rows = "";
-                if (response.status === "success") {
-                    response.data.forEach(function(item) {
-                        rows += `
-                            <tr>
-                                <td>${item.sno}</td>
-                                <td>${item.store_name}</td>
-                                <td>${item.item_name}</td>
-                                <td>${item.item_code}</td>
-                                <td>${item.stock_level}</td>
-                                <td>${item.item_quantity}</td>
-                                <td>${item.item_price}</td>
-                                <td>${item.created_at}</td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-primary edit-item" data-id="${item.id}" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
-                                        <i class="fa fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-item" data-id="${item.id}">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>`;
-                    });
-                } else {
-                    rows = `<tr><td colspan="9" class="text-center">${response.message}</td></tr>`;
-                }
-                $('#manageitems').html(rows);
+            // Fetch items and populate DataTable
+            function fetchItems() {
+                $.ajax({
+                    url: 'api/itemsview.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        let rows = "";
+                        if (response.status === "success") {
+                            response.data.forEach(function (item) {
+                                rows += `
+                        <tr>
+                            <td>${item.sno}</td>
+                            <td>${item.store_name}</td>
+                            <td>${item.item_name}</td>
+                            <td>${item.item_code}</td>
+                            <td>${item.stock_level}</td>
+                            <td>${item.item_quantity}</td>
+                            <td>${item.item_price}</td>
+                            <td>${item.created_at}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary edit-item" data-id="${item.id}" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-item" data-id="${item.id}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                            });
+                        } else {
+                            rows = `<tr><td colspan="9" class="text-center">${response.message}</td></tr>`;
+                        }
+                        $('#manageitems').html(rows);
 
-                // Destroy old DataTable before reinit
-                if ($.fn.DataTable.isDataTable('#table_id')) {
-                    $('#table_id').DataTable().destroy();
-                }
-                $('#table_id').DataTable();
-            },
-            error: function(xhr) {
-                console.log("Fetch error:", xhr.responseText);
-                $('#manageitems').html(`<tr><td colspan="9" class="text-center">Failed to fetch items</td></tr>`);
+                    },
+                    error: function (xhr) {
+                        console.log("Fetch error:", xhr.responseText);
+                        $('#manageitems').html(`<tr><td colspan="9" class="text-center">Failed to fetch items</td></tr>`);
+                    }
+                });
             }
+
+            fetchItems(); // Load on page start
+
+            // Search functionality
+            $('#searchInput').on('keyup', function () {
+                const value = $(this).val().toLowerCase();
+                $('#manageitems tr').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+
+            // Edit modal
+            $(document).on('click', '.edit-item', function () {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: 'api/get_singleitems.php',
+                    type: 'POST',
+                    data: { id: id },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.status === "success") {
+                            const item = response.data;
+                            $('#editItemId').val(item.id);
+                            $('#store_name').val(item.store_name);
+                            $('#item_name').val(item.item_name);
+                            $('#item_code').val(item.item_code);
+                            $('#stock_level').val(item.stock_level);
+                            $('#item_quantity').val(item.item_quantity);
+                            $('#item_price').val(item.item_price);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message,
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: "Failed to fetch item details",
+                        });
+                    }
+                });
+            });
+
+            // Save Changes - update item
+            $('#saveChanges').click(function () {
+                $.ajax({
+                    url: 'api/updateitemS.php',
+                    type: 'POST',
+                    data: $('#editItemForm').serialize(),
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.status === "success") {
+                            $('#exampleModalCenter').modal('hide');
+                            fetchItems(); // Reload table
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Updated!',
+                                text: 'Item updated successfully',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message,
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update item',
+                        });
+                    }
+                });
+            });
+
+            // Delete Item
+            $(document).on('click', '.delete-item', function () {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: 'api/deleteitems.php',
+                            type: 'POST',
+                            data: { id: id },
+                            dataType: 'json',
+                            success: function (response) {
+                                if (response.status === "success") {
+                                    fetchItems();
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted!',
+                                        text: 'Item deleted successfully',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: response.message,
+                                    });
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Failed to delete item',
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
         });
-    }
-
-    fetchItems(); // Load on page start
-
-    //edit modal 
-    $(document).on('click', '.edit-item', function() {
-    const id = $(this).data('id');
-    $.ajax({
-        url: 'api/get_singleitems.php',
-        type: 'POST',
-        data: { id: id },
-        dataType: 'json',
-        success: function(response) {
-            if (response.status === "success") {
-                const item = response.data;
-                $('#editItemId').val(item.id);
-                $('#store_name').val(item.store_name);
-                $('#item_name').val(item.item_name);
-                $('#item_code').val(item.item_code);
-                $('#stock_level').val(item.stock_level);
-               $('#item_quantity').val(item.item_quantity);
-
-                $('#item_price').val(item.item_price);
-            } else {
-                alert(response.message);
-            }
-        },
-        error: function(xhr) {
-            console.log("Error:", xhr.responseText);
-        }
-    });
-});
-
-    // Save Changes - update item
-    $('#saveChanges').click(function() {
-        $.ajax({
-            url: 'api/updateitemS.php',
-            type: 'POST',
-            data: $('#editItemForm').serialize(),
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === "success") {
-                    $('#exampleModalCenter').modal('hide');
-                    fetchItems(); // Reload table
-                    alert("Item updated successfully");
-                } else {
-                    alert(response.message);
-                }
-            }
-        });
-    });
-
-    // Delete Item
-    $(document).on('click', '.delete-item', function() {
-        if (!confirm("Are you sure you want to delete this item?")) return;
-        const id = $(this).data('id');
-        $.ajax({
-            url: 'api/deleteitems.php',
-            type: 'POST',
-            data: { id: id },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === "success") {
-                    fetchItems();
-                    alert("Item deleted successfully");
-                } else {
-                    alert(response.message);
-                }
-            }
-        });
-    });
-
-});
-
     </script>
-
-
-
 
 
 </body>

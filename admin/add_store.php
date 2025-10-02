@@ -24,8 +24,11 @@ include('../includes/config.php'); // adjust path if needed
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="css/vendor.css">
     <link rel="stylesheet" id="theme-style" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
 
 </head>
 
@@ -53,7 +56,8 @@ include('../includes/config.php'); // adjust path if needed
 
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">STORE NAME</label>
-                                        <input class="form-control" type="text" name="stores_name" placeholder="Enter the storename" required>
+                                        <input class="form-control" type="text" name="stores_name"
+                                            placeholder="Enter the storename" required>
                                     </div>
 
 
@@ -64,7 +68,8 @@ include('../includes/config.php'); // adjust path if needed
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">STORE LOCATION</label>
-                                        <input class="form-control" type="text" name="stores_location" placeholder="Enter the store location" required>
+                                        <input class="form-control" type="text" name="stores_location"
+                                            placeholder="Enter the store location" required>
                                     </div>
                                 </div>
 
@@ -86,7 +91,8 @@ include('../includes/config.php'); // adjust path if needed
 
                                 </div> -->
                                 <div class="col-12  text-center ">
-                                    <button type="submit" name="addstorelogin" class="btn btn-primary w-35">Add Store</button>
+                                    <button type="submit" name="addstorelogin" class="btn btn-primary w-35">Add
+                                        Store</button>
                                 </div>
 
                             </div>
@@ -129,17 +135,21 @@ include('../includes/config.php'); // adjust path if needed
     </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+
+    </script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             // 1️⃣ ADD STORE (Insert)
-            $('#addstore').on('submit', function(e) {
+            $('#addstore').on('submit', function (e) {
                 e.preventDefault();
 
                 const stores_name = $('input[name="stores_name"]').val();
@@ -155,19 +165,33 @@ include('../includes/config.php'); // adjust path if needed
                         stores_location: stores_location,
                         usertype: usertype
                     },
-                    success: function(response) {
+                    success: function (response) {
                         console.log("Add response:", response);
                         if (response.status === "success") {
-                            alert(response.message);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Added!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
                             $('#addstore')[0].reset();
                             fetch_stores(); // Refresh table after adding
                         } else {
-                            alert("Error: " + (response.message || "Unknown error"));
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || "Unknown error"
+                            });
                         }
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         console.log("XHR error:", xhr.responseText);
-                        alert("Something went wrong while adding store.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: "Something went wrong while adding store."
+                        });
                     }
                 });
             });
@@ -178,18 +202,19 @@ include('../includes/config.php'); // adjust path if needed
                     url: 'api/fetchstore.php',
                     type: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         let rows = "";
                         if (response.status === "success") {
-                            response.data.forEach(function(store, index) {
+                            response.data.forEach(function (store, index) {
                                 rows += `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${store.stores_name}</td>
                                 <td>${store.stores_location}</td>
                                 <td>
-                                    
-                                    <button class="btn btn-sm btn-danger delete-btn" data-id="${store.id}"><i class="fa fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-danger delete-btn" data-id="${store.id}">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                         `;
@@ -199,7 +224,7 @@ include('../includes/config.php'); // adjust path if needed
                         }
                         $('#fetch_stores').html(rows);
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         console.log("Fetch error:", xhr.responseText);
                         $('#fetch_stores').html(`<tr><td colspan="4">Failed to fetch stores</td></tr>`);
                     }
@@ -208,36 +233,59 @@ include('../includes/config.php'); // adjust path if needed
             fetch_stores(); // Call fetch on page load
 
             // 3️⃣ DELETE STORE
-            $(document).on('click', '.delete-btn', function(e) {
+            $(document).on('click', '.delete-btn', function (e) {
                 e.preventDefault();
                 let id = $(this).data('id');
 
-                if (confirm("Are you sure you want to delete this store?")) {
-                    $.ajax({
-                        url: 'api/deletestore.php',
-                        type: 'POST',
-                        data: {
-                            id: id
-                        },
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === "success") {
-                                alert(response.message);
-                                fetch_stores(); // Refresh table after deletion
-                            } else {
-                                alert("Error: " + response.message);
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: 'api/deletestore.php',
+                            type: 'POST',
+                            data: { id: id },
+                            dataType: 'json',
+                            success: function (response) {
+                                if (response.status === "success") {
+                                    fetch_stores(); // Refresh table after deletion
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted!',
+                                        text: response.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: response.message,
+                                    });
+                                }
+                            },
+                            error: function (xhr) {
+                                console.log("Delete error:", xhr.responseText);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: "Something went wrong while deleting store."
+                                });
                             }
-                        },
-                        error: function(xhr) {
-                            console.log("Delete error:", xhr.responseText);
-                            alert("Something went wrong while deleting store.");
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             });
 
         });
     </script>
+
 
 
 

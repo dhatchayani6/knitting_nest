@@ -1,12 +1,8 @@
 <?php
-
+session_start();
 include('../includes/config.php'); // adjust path if needed
 
-// If user is not logged in, redirect to login page
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
-    exit();
-}
+
 
 // fetch all shops names
 $sql = "SELECT id, stores_name FROM shops";
@@ -37,8 +33,11 @@ if ($result && $result->num_rows > 0) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="css/vendor.css">
     <link rel="stylesheet" id="theme-style" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
 
 </head>
 
@@ -59,65 +58,78 @@ if ($result && $result->num_rows > 0) {
             <article class="content dashboard-page bg-white">
                 <section class="section">
                     <div class="container">
-                        <span class="fw-bold">ADD ITEMS</span>
-                        <form action="" id="add_items" method="post" class="p-3" enctype="multipart/form-data">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="formFileDisabled" class="form-label">STORE NAME</label>
-                                        <select class="form-select" name="store_name" required>
-                                            <option value="">Select Store</option>
-                                            <?php foreach ($shops as $shop): ?>
-                                                <option value="<?php echo $shop['id']; ?>">
-                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
 
+                        <!-- Card Wrapper -->
+                        <div class="card shadow-sm rounded-3 border p-4">
+                            <span class="fw-bold mb-3 d-block">ADD ITEMS</span>
+
+                            <form action="" id="add_items" method="post" class="p-3" enctype="multipart/form-data">
+                                <div class="row">
+                                    <!-- Left Column -->
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">STORE NAME</label>
+                                            <select class="form-select" name="store_name" required>
+                                                <option value="">Select Store</option>
+                                                <?php foreach ($shops as $shop): ?>
+                                                    <option value="<?php echo $shop['id']; ?>">
+                                                        <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">ITEMS NAME</label>
+                                            <input class="form-control" type="text" name="item_name"
+                                                placeholder="Enter the Item name" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">ITEMS CODE</label>
+                                            <input class="form-control" type="text" name="item_code"
+                                                placeholder="Enter the Item code" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">ITEM IMAGE</label>
+                                            <input class="form-control" type="file" name="items_image" required>
+                                        </div>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="formFile" class="form-label">ITEMS NAME</label>
-                                        <input class="form-control" type="text" name="item_name" placeholder="Enter the Item name" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="formFile" class="form-label">ITEMS CODE</label>
-                                        <input class="form-control" type="text" name="item_code" placeholder="Enter the Item code" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">ITEM IMAGE</label>
-                                        <input class="form-control" type="file" name="items_image" placeholder="Enter the Minimum stock level" required>
+                                    <!-- Right Column -->
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">ITEMS QUANTITY</label>
+                                            <input class="form-control" type="text" name="item_quantity"
+                                                placeholder="Enter the Item quantity" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">ITEMS PRICE</label>
+                                            <input class="form-control" type="text" name="item_price"
+                                                placeholder="Enter the Item price" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">MINIMUM STOCK LEVEL</label>
+                                            <input class="form-control" type="text" name="stock_level"
+                                                placeholder="Enter the Minimum stock level" required>
+                                        </div>
                                     </div>
 
+                                    <!-- Submit Button -->
+                                    <div class="col-12 text-center">
+                                        <button type="submit" name="additems" class="btn btn-primary w-50 mt-3">
+                                            Add Store
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="formFile" class="form-label">ITEMS QUANTITY</label>
-                                        <input class="form-control" type="text" name="item_quantity" placeholder="Enter the Item quanitity" required>
-                                    </div>
-
-
-                                    <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">ITEMS PRICE</label>
-                                        <input class="form-control" type="text" name="item_price" placeholder="Enter the Item price" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">MINIMUM STOCK LEVEL</label>
-                                        <input class="form-control" type="text" name="stock_level" placeholder="Enter the Minimum stock level" required>
-                                    </div>
-                                </div>
-
-
-
-                                <div class="col-12  text-center ">
-                                    <button type="submit" name="additems" class="btn btn-primary w-35">Add Store</button>
-                                </div>
-
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </section>
+
 
                 <!-- center content ended -->
 
@@ -134,18 +146,19 @@ if ($result && $result->num_rows > 0) {
     </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
-            $(document).ready(function() {
+            $(document).ready(function () {
                 // 1️⃣ ADD items
-                $('#add_items').on('submit', function(e) {
+                $('#add_items').on('submit', function (e) {
                     e.preventDefault();
 
                     // Get selected store id and name
@@ -166,7 +179,7 @@ if ($result && $result->num_rows > 0) {
                         contentType: false, // important for file upload
                         processData: false, // important for file upload
 
-                        success: function(response) {
+                        success: function (response) {
                             console.log("Add response:", response);
                             if (response.status === "success") {
                                 alert(response.message);
@@ -176,7 +189,7 @@ if ($result && $result->num_rows > 0) {
                                 alert("Error: " + (response.message || "Unknown error"));
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.log("XHR error:", xhr.responseText);
                             alert("Something went wrong while adding Items.");
                         }

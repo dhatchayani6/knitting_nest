@@ -211,7 +211,7 @@
                     success: function (res) {
                         // No need for JSON.parse(res)
                         if (res.status === 200) {
-                            alert("Login Success! Welcome " + res.usertype);
+                            alert("Login Success! Welcome " + res.usertype + "\nBio ID: " + res.bio_id);
                             // Redirect based on usertype if needed
                             if (res.usertype === "Admin") {
                                 window.location.href = "admin/admin_index.php";

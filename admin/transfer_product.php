@@ -1,10 +1,9 @@
-
 <?php
-
+session_start();
 include('../includes/config.php'); // adjust path if needed
 
 // If user is not logged in, redirect to login page
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['bio_id'])) {
     header("Location: ../index.php");
     exit();
 }
@@ -17,6 +16,15 @@ $shops = [];
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $shops[] = $row;
+    }
+}
+
+// Fetch items
+$items = [];
+$result2 = $conn->query("SELECT id, item_name FROM items");
+if ($result2 && $result2->num_rows > 0) {
+    while ($row2 = $result2->fetch_assoc()) {
+        $items[] = $row2;
     }
 }
 ?>
@@ -38,8 +46,11 @@ if ($result && $result->num_rows > 0) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="css/vendor.css">
     <link rel="stylesheet" id="theme-style" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
 
 </head>
 
@@ -60,77 +71,65 @@ if ($result && $result->num_rows > 0) {
             <article class="content dashboard-page bg-white">
                 <section class="section">
                     <div class="container">
-                         <span class="fw-bold">TRANSFER PRODUCTS</span>
-                        <form action="" id="externallogin" method="post" class="p-3">
+                        <span class="fw-bold">TRANSFER PRODUCTS</span>
+                        <form action="" id="transfer_product" method="post" class="p-3">
                             <div class="row">
                                 <div class="col-md-6">
-
                                     <div class="mb-3">
-                                        <label for="formFile" class="form-label">ITEMS NAME</label>
-                                        <input class="form-control" type="text" name="item_name" placeholder="Enter the Item name" required>
+                                        <label class="form-label">ITEM NAME</label>
+                                        <select class="form-select" name="item_name" id="item_id" required>
+                                            <option value="">Select Item</option>
+                                            <?php foreach ($items as $item): ?>
+                                                <option value="<?= htmlspecialchars($item['item_name']) ?>">
+                                                    <?= htmlspecialchars($item['item_name']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
                                     </div>
-                                     <div class="mb-3">
-                                        <label for="formFile" class="form-label">ITEMS CODE</label>
-                                        <input class="form-control" type="text" name="item_code" placeholder="Enter the Item code" required>
+                                    <div class="mb-3">
+                                        <label class="form-label">ITEM CODE</label>
+                                        <input type="text" name="item_code" id="item_code" class="form-control"
+                                            readonly>
                                     </div>
-                                     <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">FROM STORE </label>
-                                        <select class="form-select" name="store_name" required>
+                                    <div class="mb-3">
+                                        <label class="form-label">FROM STORE</label>
+                                        <select class="form-select" name="from_store_id" required>
                                             <option value="">Select Store</option>
                                             <?php foreach ($shops as $shop): ?>
-                                                <option value="<?php echo $shop['id']; ?>">
-                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                <option value="<?= $shop['id'] ?>">
+                                                    <?= htmlspecialchars($shop['stores_name']) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-
                                 </div>
                                 <div class="col-md-6">
-                                     <div class="mb-3">
-                                        <label for="formFile" class="form-label">AVAILABLE ITEMS QUANTITY</label>
-                                        <input class="form-control" type="text" name="item_quanitity" placeholder="Enter the item quanitity" required>
+                                    <div class="mb-3">
+                                        <label class="form-label">AVAILABLE QUANTITY</label>
+                                        <input type="number" name="available_quantity" id="available_quantity"
+                                            class="form-control" readonly>
                                     </div>
-
-
-                                     <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">SHARED QUANTITY</label>
-                                        <input class="form-control" type="text" name="items_price" placeholder="Enter the item price" required>
+                                    <div class="mb-3">
+                                        <label class="form-label">SHARED QUANTITY</label>
+                                        <input type="number" name="shared_quantity" id="shared_quantity"
+                                            class="form-control" placeholder="Enter quantity" required>
                                     </div>
-                                     <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">TO STORE </label>
-                                        <select class="form-select" name="store_name" required>
+                                    <div class="mb-3">
+                                        <label class="form-label">TO STORE</label>
+                                        <select class="form-select" name="to_store_id" required>
                                             <option value="">Select Store</option>
                                             <?php foreach ($shops as $shop): ?>
-                                                <option value="<?php echo $shop['id']; ?>">
-                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                <option value="<?= $shop['id'] ?>">
+                                                    <?= htmlspecialchars($shop['stores_name']) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                 </div>
-
-
-
-
-                                <!-- <div class="col-md-6">
-
-
-                                    <div class="mb-3">
-                                        <label for="formFileDisabled" class="form-label">Usertype</label>
-                                        <select class="form-select" name="usertype" required>
-                                            <option>Select menu</option>
-                                            <option value="Admin">Admin</option>
-                                            <option value="External"></option>
-
-                                        </select>
-                                    </div>
-
-                                </div> -->
-                                <div class="col-12  text-center ">
-                                    <button type="submit" name="transfer_product" class="btn btn-primary w-35">Transfer Product</button>
+                                <div class="col-12 text-center">
+                                    <button type="submit" class="btn btn-primary w-35">Transfer Product</button>
                                 </div>
-
                             </div>
                         </form>
                     </div>
@@ -141,7 +140,7 @@ if ($result && $result->num_rows > 0) {
                 <!-- table start -->
 
 
-               
+
             </article>
             <!-- table end -->
 
@@ -151,140 +150,76 @@ if ($result && $result->num_rows > 0) {
     </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
 
-  <script>
-$(document).ready(function () {
-
-    // =====================
-    // ADD FORM SUBMIT
-    // =====================
-    $('#externallogin').on('submit', function (e) {
-        e.preventDefault();
-
-        const externalname = $('input[name="externalname"]').val();
-        const password = $('input[name="password"]').val();
-        const usertype = $('select[name="usertype"]').val();
-
-        const formData = {
-            externalname: externalname,
-            password: password,
-            usertype: usertype
-        };
-
-        $.ajax({
-            url: 'api/adminlogin.php',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(formData),
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    $('#externallogin')[0].reset();
-                    fetchLoginDetails(); // refresh table after adding
-                } else {
-                    if (Array.isArray(response.message)) {
-                        alert("Error:\n" + response.message.join("\n"));
-                    } else {
-                        alert("Error: " + response.message);
-                    }
-                }
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText);
-                alert("Something went wrong. Please try again.");
-            }
-        });
-    });
-
-    // =====================
-    // FETCH TABLE DATA
-    // =====================
-    function fetchLoginDetails() {
-        $.ajax({
-            url: 'api/fetchlogin.php',
-            type: 'GET',
-            dataType: 'json',
-            success: function (response) {
-                if (response.status === true && Array.isArray(response.data)) {
-                    let tableRows = '';
-                    response.data.forEach(function (user, index) {
-                        tableRows += `
-                            <tr>
-                                <th scope="row">${user.sno}</th>
-                                <td>${user.email}</td>
-                                <td>${user.password}</td>
-                                <td>${user.usertype}</td>  
-                                <td>
-                                    <button class="btn btn-danger btn-sm delete-btn" data-id="${user.id}">
-                                        <i class="fa fa-trash"></i> 
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
+    <script>
+        $(document).ready(function () {
+            // Fetch item details when selected
+            $('#item_id').change(function () {
+                var item_name = $(this).val(); // now this is the name
+                if (item_name) {
+                    $.ajax({
+                        url: 'api/get_item_details.php',
+                        type: 'POST',
+                        data: { id: item_name }, // keep your PHP expecting 'id' or change key to 'item_name'
+                        dataType: 'json',
+                        success: function (res) {
+                            if (res.success) {
+                                $('#item_code').val(res.data.item_code);
+                                $('#available_quantity').val(res.data.available_quantity);
+                            } else {
+                                $('#item_code').val('');
+                                $('#available_quantity').val('');
+                                alert(res.message);
+                            }
+                        }
                     });
-                    $('#loginTableBody').html(tableRows);
                 } else {
-                    $('#loginTableBody').html(`
-                        <tr><td colspan="5" class="text-center">No data found</td></tr>
-                    `);
+                    $('#item_code').val('');
+                    $('#available_quantity').val('');
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Fetch Error:", error);
-                $('#loginTableBody').html(`
-                    <tr><td colspan="5" class="text-danger text-center">Something went wrong</td></tr>
-                `);
-            }
-        });
-    }
+            });
 
-    // =====================
-    // DELETE BUTTON CLICK
-    // =====================
-    $(document).on('click', '.delete-btn', function (e) {
-         e.preventDefault();
-        let id = $(this).data('id');
 
-        if (!confirm("Are you sure you want to delete this record?")) {
-            return;
-        }
+            // Handle form submission
+            $('#transfer_product').submit(function (e) {
+                e.preventDefault();
 
-        let formData = new FormData();
-        formData.append('id', id);
+                var available = parseInt($('#available_quantity').val());
+                var shared = parseInt($('#shared_quantity').val());
 
-        $.ajax({
-            url: 'api/deletelogin.php',
-            type: 'POST',
-             dataType: 'json',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.status === true) {
-                    alert(response.message);
-                    // fetchLoginDetails(); // refresh after delete
-                     location.reload();
-            
-                } else {
-                    alert("Error: " + response.message);
+                if (shared > available) {
+                    alert('Cannot transfer more than available quantity!');
+                    return;
                 }
-            },
-           
+
+                $.ajax({
+                    url: 'api/transfer_item.php',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.success) {
+                            alert('Item transferred successfully!');
+                            $('#transfer_product')[0].reset();
+                            $('#item_code, #available_quantity').val('');
+                        } else {
+                            alert('Error: ' + res.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        alert('An error occurred. Please try again.');
+                    }
+                });
+            });
         });
-    });
-
-    // =====================
-    // INITIAL LOAD
-    // =====================
-    fetchLoginDetails();
-
-});
-</script>
+    </script>
 
 
 </body>

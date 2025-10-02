@@ -1,6 +1,6 @@
 <?php
 // Start session if needed
-session_start();
+
 
 // Database configuration
 $host = "localhost";     // Database host

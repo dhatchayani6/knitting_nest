@@ -21,7 +21,7 @@
                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
                     aria-expanded="false">
 
-                    <span class="name"> Admin </span>
+                    <span class="name"> Shopkeeper </span>
                 </a>
                 <div class="dropdown-menu profile-dropdown-menu" aria-labelledby="dropdownMenu1">
                     <!-- <a class="dropdown-item" href="#">

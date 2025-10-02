@@ -1,7 +1,13 @@
 <?php
-
+session_start();
 include('../includes/config.php'); // adjust path if needed
+// Check if bio_id exists in the session
+if (!isset($_SESSION['bio_id'])) {
+    echo '<p class="text-center">Please log in to view your products.</p>';
+    exit;
+}
 
+$bioid = $_SESSION['bio_id'];
 ?>
 
 <!doctype html>
@@ -25,12 +31,6 @@ include('../includes/config.php'); // adjust path if needed
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
         crossorigin="anonymous"></script>
-        <style>
-            tr th{
-                    font-size: 15px;
-    font-weight: 600;
-            }
-        </style>
 
 </head>
 
@@ -51,31 +51,34 @@ include('../includes/config.php'); // adjust path if needed
             <article class="content dashboard-page bg-white">
 
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <!-- <button id="deleteAllBtn" class="btn btn-danger btn-sm">
-                        <i class="fa fa-trash"></i> Delete All
-                    </button> -->
-                </div>
+
                 <!-- table start -->
-                <section class="section card shadow border p-3">
+                <section class="section card border rounded shadow p-3">
                     <div class="container">
-                        <h5 class="mb-3">TRANSFER PRODUCTS</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-3">TRANSFER PRODUCTS</h5>
+                        <!-- Search Box -->
+                        <div class="mb-3">
+                            <input type="text" id="search_input" class="form-control"
+                                placeholder="Search by item name, code, or store...">
+                        </div>
+                        </div>
                         <div class="row">
                             <div class="table-responsive">
-                                <table class="table table-striped text-center ">
+                                <table class="table">
                                     <thead>
                                         <tr>
                                             <th scope="col">S.No</th>
                                             <th scope="col">ITEMS NAME</th>
                                             <th scope="col">ITEMS CODE</th>
-
                                             <th scope="col">TOTAL ITEMS QUANTITY</th>
                                             <th scope="col">SHARED QUANTITY</th>
-                                            <th scope="col"> ITEMS PRICE</th>
-
                                             <th scope="col">FROM STORE </th>
                                             <th scope="col">TO STORE </th>
-                                            <th scope="col">TRANSFER STATUS</th>
+                                            <th scope="col">Transfer Stattus</th>
+
+
+
 
                                         </tr>
                                     </thead>
@@ -111,65 +114,61 @@ include('../includes/config.php'); // adjust path if needed
         $(document).ready(function () {
             let limit = 10;
 
-            function fetchTransferDetails(page = 1) {
+            function fetchTransferDetails(page = 1, search = '') {
                 $.ajax({
-                    url: "api/fetch_transfer_details.php", // your API for transfer table
+                    url: "api/fetch_transfer_details.php",
                     type: "GET",
-                    data: {
-                        page: page,
-                        limit: limit
-                    },
+                    data: { page: page, limit: limit, search: search },
                     dataType: "json",
                     success: function (response) {
+                        let rows = "";
                         if (response.status === "Fetch transfer details success") {
-                            let rows = "";
                             $.each(response.data, function (index, item) {
+                                let statusHTML = '';
+                                if (item.transfer_status === 'pending') {
+                                    statusHTML = `
+                                <button class="btn btn-success btn-sm accept-btn" data-id="${item.id}">Accept</button>
+                                <button class="btn btn-danger btn-sm reject-btn" data-id="${item.id}">Reject</button>
+                            `;
+                                } else if (item.transfer_status === 'accepted') {
+                                    statusHTML = `<span class="badge bg-success">Accepted</span>`;
+                                } else if (item.transfer_status === 'rejected') {
+                                    statusHTML = `<span class="badge bg-danger">Rejected</span>`;
+                                }
+
                                 rows += `
                             <tr>
                                 <td>${item.sno}</td>
                                 <td>${item.item_name}</td>
                                 <td>${item.item_code}</td>
-                                                                <td>${item.item_code}</td>
-
                                 <td>${item.available_quantity}</td>
                                 <td>${item.shared_quantity}</td>
-                                <td>${item.from_store}</td>
-                                <td>${item.to_store}</td>
-                                                                <td>${item.transfer_status}</td>
-
+                                <td>${item.from_shop_name}</td>
+                                <td>${item.to_shop_name}</td>
+                                <td>${statusHTML}</td>
                             </tr>
                         `;
                             });
                             $("#transfer_details").html(rows);
 
-                            // build pagination
+                            // Pagination
                             let paginationHTML = "";
                             if (response.total_pages > 1) {
                                 paginationHTML += `<button class="btn btn-sm btn-light page-btn" data-page="${response.current_page - 1}" ${response.current_page === 1 ? 'disabled' : ''}>Prev</button> `;
                                 for (let i = 1; i <= response.total_pages; i++) {
-                                    paginationHTML += `<button class="btn btn-sm ${i === response.current_page ? 'btn-primary' : 'btn-light'} page-btn" data-page="${i}">${i}</button> `;
+                                    paginationHTML += `<button class="btn btn-sm ${i === response.current_page ? 'btn-primary' : 'btn-light'} page-btn" data-page="${i}" data-search="${search}">${i}</button> `;
                                 }
                                 paginationHTML += `<button class="btn btn-sm btn-light page-btn" data-page="${response.current_page + 1}" ${response.current_page === response.total_pages ? 'disabled' : ''}>Next</button>`;
+                                $("#pagination").html(paginationHTML);
                             }
-                            $("#pagination").html(paginationHTML);
-
                         } else {
-                            $("#transfer_details").html(`
-                        <tr>
-                            <td colspan="9" class="text-center text-danger">No records found</td>
-                        </tr>
-                    `);
+                            $("#transfer_details").html(`<tr><td colspan="8" class="text-center text-danger">No records found</td></tr>`);
                             $("#pagination").html("");
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.log("Error:", error);
-                        $("#transfer_details").html(`
-                    <tr>
-                        <td colspan="9" class="text-center text-danger">Something went wrong!</td>
-                    </tr>
-                `);
-                        $("#pagination").html("");
+                        console.log(xhr.responseText);
+                        $("#transfer_details").html(`<tr><td colspan="8" class="text-center text-danger">Something went wrong!</td></tr>`);
                     }
                 });
             }
@@ -177,38 +176,45 @@ include('../includes/config.php'); // adjust path if needed
             // Initial fetch
             fetchTransferDetails(1);
 
-            // handle pagination button click
-            $(document).on("click", ".page-btn", function () {
-                let page = $(this).data("page");
-                fetchTransferDetails(page);
+            // Search input keyup
+            $('#search_input').on('keyup', function () {
+                let search = $(this).val();
+                fetchTransferDetails(1, search);
             });
 
-            // DELETE ALL TRANSFER DATA
-            $(document).on('click', '#deleteAllBtn', function () {
-                if (!confirm("Are you sure you want to delete ALL transfer records? This action cannot be undone.")) {
-                    return;
-                }
+            // Pagination click
+            $(document).on("click", ".page-btn", function () {
+                let page = $(this).data("page");
+                let search = $('#search_input').val();
+                fetchTransferDetails(page, search);
+            });
 
+            // Accept/Reject buttons
+            $(document).on('click', '.accept-btn, .reject-btn', function () {
+                let transferId = $(this).data('id');
+                let action = $(this).hasClass('accept-btn') ? 'accepted' : 'rejected';
+                if (!confirm(`Are you sure you want to ${action.toUpperCase()} this transfer?`)) return;
                 $.ajax({
-                    url: 'api/transfer_delete.php', // your delete API
-                    type: 'POST', // safer than DELETE for cross-browser
+                    url: 'api/update_transfer_status.php',
+                    type: 'POST',
+                    data: { id: transferId, status: action },
                     dataType: 'json',
                     success: function (response) {
                         if (response.status === 'success') {
                             alert(response.message);
-                            location.reload(); // refresh entire page
+                            fetchTransferDetails(1, $('#search_input').val());
                         } else {
                             alert("Error: " + response.message);
                         }
                     },
                     error: function (xhr, status, error) {
                         console.log(xhr.responseText);
-                        alert("An error occurred: " + error);
+                        alert("Something went wrong: " + error);
                     }
                 });
             });
-
         });
+
     </script>
 
 

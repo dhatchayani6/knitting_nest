@@ -38,8 +38,11 @@ if ($result && $result->num_rows > 0) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="css/vendor.css">
     <link rel="stylesheet" id="theme-style" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
 
 </head>
 
@@ -80,11 +83,13 @@ if ($result && $result->num_rows > 0) {
                                     </div>
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">SHOPKEEPER NAME</label>
-                                        <input class="form-control" type="text" name="shopkeeper_name" placeholder="Enter the shopkeeper name" required>
+                                        <input class="form-control" type="text" name="shopkeeper_name"
+                                            placeholder="Enter the shopkeeper name" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">SHOPKEEPER PASSWORD</label>
-                                        <input class="form-control" type="text" name="password" placeholder="Enter the shopkeeper name" required>
+                                        <input class="form-control" type="text" name="password"
+                                            placeholder="Enter the shopkeeper name" required>
                                     </div>
 
 
@@ -93,11 +98,13 @@ if ($result && $result->num_rows > 0) {
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">STORE LOCATION</label>
-                                        <input class="form-control" type="text" name="store_location" placeholder="Enter the store location" required>
+                                        <input class="form-control" type="text" name="store_location"
+                                            placeholder="Enter the store location" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">SHOPKEEPER BIO_ID</label>
-                                        <input class="form-control" type="text" name="shopkeeper_bioid" placeholder="Enter the shopkeeper name" required>
+                                        <input class="form-control" type="text" name="shopkeeper_bioid"
+                                            placeholder="Enter the shopkeeper name" required>
                                     </div>
 
 
@@ -123,7 +130,8 @@ if ($result && $result->num_rows > 0) {
 
                                 </div> -->
                                 <div class="col-12  text-center ">
-                                    <button type="submit" name="shopkeeper" class="btn btn-primary w-35">Add Shopkeeper</button>
+                                    <button type="submit" name="shopkeeper" class="btn btn-primary w-35">Add
+                                        Shopkeeper</button>
                                 </div>
 
                             </div>
@@ -168,18 +176,20 @@ if ($result && $result->num_rows > 0) {
     </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
-            $(document).ready(function() {
+            $(document).ready(function () {
                 // 1️⃣ ADD SHOPKEEPER
-                $('#addshopkeeper').on('submit', function(e) {
+                $('#addshopkeeper').on('submit', function (e) {
                     e.preventDefault();
 
                     const shop_id = $('select[name="shop_name"]').val(); // get selected shop id
@@ -188,7 +198,7 @@ if ($result && $result->num_rows > 0) {
                     const password = $('input[name="password"]').val();
                     const store_location = $('input[name="store_location"]').val();
                     const shopkeeper_bioid = $('input[name="shopkeeper_bioid"]').val();
-                    const usertype = "Shopkeeper"; // static for now
+                    const usertype = "shopkeeper"; // static for now
 
                     $.ajax({
                         url: 'api/shopkeeper.php',
@@ -203,64 +213,106 @@ if ($result && $result->num_rows > 0) {
                             shopkeeper_bioid: shopkeeper_bioid,
                             usertype: usertype
                         },
-                        success: function(response) {
+                        success: function (response) {
                             console.log("Add response:", response);
                             if (response.status === "success") {
-                                alert(response.message);
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Added!',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
                                 $('#addshopkeeper')[0].reset();
-                                // fetch_shopkeepers(); // you can write a function to refresh table
+                                fetch_shopkeeper(); // Refresh table after adding
                             } else {
-                                alert("Error: " + (response.message || "Unknown error"));
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message || "Unknown error"
+                                });
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.log("XHR error:", xhr.responseText);
-                            alert("Something went wrong while adding shopkeeper.");
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Something went wrong while adding shopkeeper.'
+                            });
                         }
                     });
                 });
             });
 
+
             // 2️⃣ FETCH STORES (GET)
             function fetch_shopkeeper() {
                 $.ajax({
-                    url: 'api/fetchshopkeeper.php',
+                    url: 'api/fetchshopkeeper.php', // Your API path
                     type: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         let rows = "";
-                        if (response.status === "success") {
-                            response.data.forEach(function(shopkeeper, index) {
+                        if (response.status === "success" && response.data.length > 0) {
+                            // Populate table rows if data exists
+                            response.data.forEach(function (shopkeeper, index) {
                                 rows += `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${shopkeeper.shop_name}</td>
-                                <td>${shopkeeper.store_location}</td>
-                                <td>${shopkeeper.shopkeeper_name}</td>
-                                <td>${shopkeeper.shopkeeper_bioid}</td>
-                                <td>${shopkeeper.password}</td>
-                                <td>
-                                   
-                                    <button class="btn btn-sm btn-danger delete-btn" data-id="${shopkeeper.shopkeeper_id}"><i class="fa fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
+                        <tr>
+                            <td>${shopkeeper.sno}</td>
+                            <td>${shopkeeper.shop_name}</td>
+                            <td>${shopkeeper.store_location}</td>
+                            <td>${shopkeeper.shopkeeper_name}</td>
+                            <td>${shopkeeper.shopkeeper_bioid}</td>
+                            <td>${shopkeeper.password}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="${shopkeeper.shopkeeper_id}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                            });
+                        } else if (response.status === "success" && response.data.length === 0) {
+                            // No data found
+                            rows = `<tr><td colspan="7" class="text-center text-danger">No data found</td></tr>`;
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'No Data',
+                                text: 'No shopkeepers found.',
+                                timer: 2000,
+                                showConfirmButton: false
                             });
                         } else {
-                            rows = `<tr><td colspan="7">${response.message}</td></tr>`;
+                            // API returned error
+                            rows = `<tr><td colspan="7" class="text-center text-danger">${response.message}</td></tr>`;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message
+                            });
                         }
+
                         $('#fetch_shopkeeper').html(rows);
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         console.log("Fetch error:", xhr.responseText);
-                        $('#fetch_shopkeeper').html(`<tr><td colspan="4">Failed to fetch stores</td></tr>`);
+                        $('#fetch_shopkeeper').html(`<tr><td colspan="7" class="text-center text-danger">Failed to fetch shopkeepers</td></tr>`);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to fetch shopkeepers'
+                        });
                     }
                 });
             }
+
+
+
             fetch_shopkeeper(); // Call fetch on page load
-           
+
             // 3️⃣ DELETE STORE
-            $(document).on('click', '.delete-btn', function(e) {
+            $(document).on('click', '.delete-btn', function (e) {
                 e.preventDefault();
                 let id = $(this).data('id');
 
@@ -272,7 +324,7 @@ if ($result && $result->num_rows > 0) {
                             id: id
                         },
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response.status === "success") {
                                 alert(response.message);
                                 fetch_shopkeeper(); // Refresh table after deletion
@@ -280,7 +332,7 @@ if ($result && $result->num_rows > 0) {
                                 alert("Error: " + response.message);
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.log("Delete error:", xhr.responseText);
                             alert("Something went wrong while deleting store.");
                         }
