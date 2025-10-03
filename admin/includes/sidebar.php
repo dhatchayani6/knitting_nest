@@ -1,3 +1,10 @@
+<?php
+include "../includes/config.php";
+$sql = "SELECT COUNT(*) as low_stock_count FROM items WHERE item_quantity <= stock_level";
+$result = $conn->query($sql);
+$row = $result->fetch_assoc();
+$lowStockCount = $row['low_stock_count'];
+?>
 <aside class="sidebar">
     <div class="sidebar-container">
         <div class="sidebar-header">
