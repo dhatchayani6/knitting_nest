@@ -1,3 +1,30 @@
+<?php
+include('../includes/config.php'); // adjust path if needed
+
+// Query to count total shops
+$result = $conn->query("SELECT COUNT(*) AS total_shops FROM shops");
+$row = $result->fetch_assoc();
+$totalShops = $row['total_shops'];
+
+
+$result = $conn->query("SELECT COUNT(*) AS total_shopkeeper FROM shopkeeper");
+$row = $result->fetch_assoc();
+$totalshopkeeper = $row['total_shopkeeper'];
+
+$result = $conn->query("SELECT COUNT(*) AS total_items FROM items");
+$row = $result->fetch_assoc();
+$total_items = $row['total_items'];
+
+$result = $conn->query("SELECT COUNT(*) AS items_transfer FROM item_transfers");
+$row = $result->fetch_assoc();
+$items_transfer = $row['items_transfer'];
+
+
+
+?>
+
+
+
 <!doctype html>
 <html class="no-js" lang="en">
 
@@ -42,9 +69,9 @@
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded" >
                                     <div class="card-body text-center">
-                                        <h5 class="card-title"> LOGIN LIST</h5>
-                                        <h6 class="card-subtitle mb-2 text-body-secondary">ADMIN/USER</h6>
-                                        <p class="card-text">COUNT:</p>
+                                        <h5 class="card-title"> STORES LIST</h5>
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
+                                        <p class="card-text">COUNT:<?php echo $totalShops ?></p>
 
                                     </div>
                                 </div>
@@ -54,9 +81,9 @@
 
                                <div class=" card shadow p-3 mb-5 bg-light rounded" >
                                     <div class="card-body text-center">
-                                        <h5 class="card-title">TOTAL COURSE</h5>
-                                        <h6 class="card-subtitle mb-2 text-body-secondary">COURSE CODE/NAME</h6>
-                                        <p class="card-text">COUNT:</p>
+                                        <h5 class="card-title"> SHOPKEEPER LIST</h5>
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
+                                        <p class="card-text">COUNT:<?PHP echo $totalshopkeeper?></p>
 
                                     </div>
                                 </div>
@@ -67,9 +94,9 @@
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded" >
                                     <div class="card-body text-center">
-                                        <h5 class="card-title">EXAM SCHEDULE LIST </h5>
-                                        <h6 class="card-subtitle mb-2 text-body-secondary">EXAM DETAILS</h6>
-                                        <p class="card-text">COUNT:</p>
+                                        <h5 class="card-title">AVAILABLE ITEMS </h5>
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
+                                        <p class="card-text">COUNT: <?php echo $total_items?></p>
 
                                     </div>
                                 </div>
@@ -80,26 +107,26 @@
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded" >
                                     <div class="card-body text-center">
-                                        <h5 class="card-title">STUDENTS MARKS LIST </h5>
-                                        <h6 class="card-subtitle mb-2 text-body-secondary">MARKS DETAILS</h6>
-                                        <p class="card-text">COUNT:</p>
+                                        <h5 class="card-title"> ITEMS_TRANSFER </h5>
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
+                                        <p class="card-text">COUNT:<?php echo $items_transfer?></p>
 
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="col-sm-6 col-md-4 mb-3">
+                            <!-- <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded" >
                                     <div class="card-body text-center">
-                                        <h5 class="card-title">EXTERNAL DETAILS </h5>
-                                        <h6 class="card-subtitle mb-2 text-body-secondary">EXTERNAL DETAILS</h6>
+                                        <h5 class="card-title">NOTIFICATIONS </h5>
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
                                         <p class="card-text">COUNT:</p>
 
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                 </section>

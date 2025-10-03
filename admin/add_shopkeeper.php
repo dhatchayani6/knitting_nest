@@ -297,12 +297,12 @@ if ($result && $result->num_rows > 0) {
                     },
                     error: function (xhr) {
                         console.log("Fetch error:", xhr.responseText);
-                        $('#fetch_shopkeeper').html(`<tr><td colspan="7" class="text-center text-danger">Failed to fetch shopkeepers</td></tr>`);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to fetch shopkeepers'
-                        });
+                        $('#fetch_shopkeeper').html(`<tr><td colspan="7" class="text-center text-danger"> NO Shopkeepers</td></tr>`);
+                        // Swal.fire({
+                        //     icon: 'error',
+                        //     title: 'Error',
+                        //     text: 'Failed to fetch shopkeepers'
+                        // });
                     }
                 });
             }

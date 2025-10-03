@@ -21,7 +21,7 @@ if ($result && $result->num_rows > 0) {
 
 // Fetch items
 $items = [];
-$result2 = $conn->query("SELECT id, item_name FROM items");
+$result2 = $conn->query("SELECT id, item_name,store_name FROM items");
 if ($result2 && $result2->num_rows > 0) {
     while ($row2 = $result2->fetch_assoc()) {
         $items[] = $row2;
@@ -80,7 +80,7 @@ if ($result2 && $result2->num_rows > 0) {
                                         <select class="form-select" name="item_name" id="item_id" required>
                                             <option value="">Select Item</option>
                                             <?php foreach ($items as $item): ?>
-                                                <option value="<?= htmlspecialchars($item['item_name']) ?>">
+                                                <option value="<?= htmlspecialchars($item['id']) ?>">
                                                     <?= htmlspecialchars($item['item_name']) ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -94,15 +94,16 @@ if ($result2 && $result2->num_rows > 0) {
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">FROM STORE</label>
-                                        <select class="form-select" name="from_store_id" required>
-                                            <option value="">Select Store</option>
-                                            <?php foreach ($shops as $shop): ?>
-                                                <option value="<?= $shop['id'] ?>">
-                                                    <?= htmlspecialchars($shop['stores_name']) ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <!-- Hidden input to store store ID -->
+<input type="hidden" name="from_store_id" id="from_store_id">
+
+<!-- Display input for user to see store name -->
+<input type="text" id="from_store_name" class="form-control" readonly>
+
+                                        <!-- <input type="text" name="from_store_id" id="from_store_id" class="form-control" -->
+                                            <!-- readonly> -->
                                     </div>
+
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -156,71 +157,110 @@ if ($result2 && $result2->num_rows > 0) {
 
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
+<script>
+   $(document).ready(function () {
 
-    <script>
-        $(document).ready(function () {
-            // Fetch item details when selected
-            $('#item_id').change(function () {
-                var item_name = $(this).val(); // now this is the name
-                if (item_name) {
-                    $.ajax({
-                        url: 'api/get_item_details.php',
-                        type: 'POST',
-                        data: { id: item_name }, // keep your PHP expecting 'id' or change key to 'item_name'
-                        dataType: 'json',
-                        success: function (res) {
-                            if (res.success) {
-                                $('#item_code').val(res.data.item_code);
-                                $('#available_quantity').val(res.data.available_quantity);
-                            } else {
-                                $('#item_code').val('');
-                                $('#available_quantity').val('');
-                                alert(res.message);
-                            }
-                        }
-                    });
-                } else {
-                    $('#item_code').val('');
-                    $('#available_quantity').val('');
-                }
-            });
+   
+  $('#item_id').change(function () {
+    var id = $(this).val();
+    if (id) {
+        $.ajax({
+            url: 'api/get_item_details.php',
+            type: 'POST',
+            data: { id: id },
+            dataType: 'json',
+            success: function (res) {
+                if (res.success) {
+                    var first = res.data[0];
 
+                    $('#item_code').val(first.item_code);
+                    $('#available_quantity').val(first.available_quantity);
 
-            // Handle form submission
-            $('#transfer_product').submit(function (e) {
-                e.preventDefault();
+                    // ✅ Fill display and hidden inputs
+                    $('#from_store_name').val(first.store_name); // visible to user
+                    $('#from_store_id').val(first.store_id);     // sent to DB
 
-                var available = parseInt($('#available_quantity').val());
-                var shared = parseInt($('#shared_quantity').val());
-
-                if (shared > available) {
-                    alert('Cannot transfer more than available quantity!');
-                    return;
-                }
-
-                $.ajax({
-                    url: 'api/transfer_item.php',
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    dataType: 'json',
-                    success: function (res) {
-                        if (res.success) {
-                            alert('Item transferred successfully!');
-                            $('#transfer_product')[0].reset();
-                            $('#item_code, #available_quantity').val('');
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function (xhr) {
-                        console.error(xhr.responseText);
-                        alert('An error occurred. Please try again.');
+                    if (res.data.length > 1) {
+                        // multiple items logic (optional)
+                        $('#multiple_items_container').show();
+                        var select = $('#specific_item_select');
+                        select.empty();
+                        res.data.forEach(item => {
+                            select.append(`
+                                <option value="${item.id}" 
+                                        data-code="${item.item_code}" 
+                                        data-qty="${item.available_quantity}" 
+                                        data-store-id="${item.store_id}" 
+                                        data-store-name="${item.store_name}">
+                                    Code: ${item.item_code}, Qty: ${item.available_quantity}, Store: ${item.store_name}
+                                </option>`);
+                        });
+                    } else {
+                        $('#multiple_items_container').hide();
                     }
-                });
-            });
+                } else {
+                    $('#item_code, #available_quantity, #from_store_name, #from_store_id').val('');
+                    alert(res.message);
+                }
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+                alert('Error fetching item details.');
+            }
         });
-    </script>
+    } else {
+        $('#item_code, #available_quantity, #from_store_name, #from_store_id').val('');
+        $('#multiple_items_container').hide();
+    }
+});
 
+// When multiple items selected
+$(document).on('change', '#specific_item_select', function () {
+    var selected = $(this).find(':selected');
+    $('#item_code').val(selected.data('code'));
+    $('#available_quantity').val(selected.data('qty'));
+    $('#from_store_name').val(selected.data('store-name')); // display
+    $('#from_store_id').val(selected.data('store-id'));     // actual value
+});
+
+    // Form submission remains the same
+    $('#transfer_product').submit(function (e) {
+        e.preventDefault();
+
+        var available = parseInt($('#available_quantity').val());
+        var shared = parseInt($('#shared_quantity').val());
+
+        if (shared > available) {
+            alert('Cannot transfer more than available quantity!');
+            return;
+        }
+        
+        $.ajax({
+            url: 'api/transfer_item.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function (res) {
+                if (res.success) {
+                    alert('Item transferred successfully!');
+                    $('#transfer_product')[0].reset();
+                    $('#item_code, #available_quantity ,#from_store_id').val('');
+                    $('#multiple_items_container').hide();
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+
+});
+
+
+</script>
 
 </body>
 

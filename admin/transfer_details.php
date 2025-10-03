@@ -71,7 +71,7 @@ include('../includes/config.php'); // adjust path if needed
 
                                             <th scope="col">TOTAL ITEMS QUANTITY</th>
                                             <th scope="col">SHARED QUANTITY</th>
-                                            <th scope="col"> ITEMS PRICE</th>
+                                            <!-- <th scope="col"> ITEMS PRICE</th> -->
 
                                             <th scope="col">FROM STORE </th>
                                             <th scope="col">TO STORE </th>
@@ -128,14 +128,16 @@ include('../includes/config.php'); // adjust path if needed
                             <tr>
                                 <td>${item.sno}</td>
                                 <td>${item.item_name}</td>
+                                
                                 <td>${item.item_code}</td>
-                                                                <td>${item.item_code}</td>
+                            
 
                                 <td>${item.available_quantity}</td>
                                 <td>${item.shared_quantity}</td>
+
                                 <td>${item.from_store}</td>
                                 <td>${item.to_store}</td>
-                                                                <td>${item.transfer_status}</td>
+                                <td>${item.transfer_status}</td>
 
                             </tr>
                         `;

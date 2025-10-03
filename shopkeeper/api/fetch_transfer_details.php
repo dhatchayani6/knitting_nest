@@ -37,10 +37,10 @@ $types = "ii";
 
 // Add search filter if provided
 if (!empty($search)) {
-    $where .= " AND (t.item_name LIKE ? OR t.item_code LIKE ? OR f.stores_name LIKE ? OR to_shop.stores_name LIKE ?)";
+    $where .= " AND (i.item_name LIKE ? OR i.id LIKE ? OR t.item_code LIKE ? OR f.stores_name LIKE ? OR to_shop.stores_name LIKE ?)";
     $searchParam = "%$search%";
-    $params = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam]);
-    $types .= "ssss";
+    $params = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam, $searchParam]);
+    $types .= "sssss";
 }
 
 // Count total records
@@ -48,6 +48,7 @@ $totalSql = "SELECT COUNT(*) AS total
              FROM item_transfers t
              LEFT JOIN shops f ON t.from_store_id = f.id
              LEFT JOIN shops to_shop ON t.to_store_id = to_shop.id
+             LEFT JOIN items i ON t.item_id = i.id
              WHERE $where";
 $totalStmt = $conn->prepare($totalSql);
 $totalStmt->bind_param($types, ...$params);
@@ -58,13 +59,27 @@ $total_records = $totalRow['total'];
 $total_pages = ceil($total_records / $limit);
 
 // Fetch paginated records
-$sql = "SELECT t.*, f.stores_name AS from_shop_name, to_shop.stores_name AS to_shop_name
+$sql = "SELECT 
+            t.id,
+            t.item_id,
+            i.item_name,        -- ✅ item name from items table
+            i.item_code,        -- ✅ take code from items too (to avoid mismatch)
+            t.from_store_id,
+            t.to_store_id,
+            t.available_quantity,
+            t.shared_quantity,
+            t.transfer_status,
+            t.created_at,
+            f.stores_name AS from_store,
+            to_shop.stores_name AS to_store
         FROM item_transfers t
+        LEFT JOIN items i ON t.item_id = i.id
         LEFT JOIN shops f ON t.from_store_id = f.id
         LEFT JOIN shops to_shop ON t.to_store_id = to_shop.id
         WHERE $where
         ORDER BY t.id DESC
         LIMIT ?, ?";
+
 $params[] = $offset;
 $params[] = $limit;
 $types .= "ii";
@@ -87,4 +102,3 @@ echo json_encode([
     'current_page' => $page,
     'total_pages' => $total_pages
 ]);
-?>

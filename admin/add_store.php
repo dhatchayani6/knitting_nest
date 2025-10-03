@@ -226,7 +226,7 @@ include('../includes/config.php'); // adjust path if needed
                     },
                     error: function (xhr) {
                         console.log("Fetch error:", xhr.responseText);
-                        $('#fetch_stores').html(`<tr><td colspan="4">Failed to fetch stores</td></tr>`);
+                        $('#fetch_stores').html(`<tr><td colspan="4">No stores available</td></tr>`);
                     }
                 });
             }

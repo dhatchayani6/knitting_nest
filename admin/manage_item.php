@@ -206,6 +206,7 @@ include('../includes/config.php'); // adjust path if needed
                             rows = `<tr><td colspan="9" class="text-center">${response.message}</td></tr>`;
                         }
                         $('#manageitems').html(rows);
+                        
 
                     },
                     error: function (xhr) {

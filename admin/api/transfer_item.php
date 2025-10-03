@@ -5,7 +5,7 @@ include __DIR__ . '/../../includes/config.php'; // adjust path
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $item_name = $_POST['item_name'] ?? '';
     $item_code = $_POST['item_code'] ?? '';
-    $from_store_id = $_POST['from_store_id'] ?? 0;
+    $from_store_id = $_POST['from_store_id'] ?? '';
     $to_store_id = $_POST['to_store_id'] ?? 0;
     $available_quantity = $_POST['available_quantity'] ?? 0;
     $shared_quantity = $_POST['shared_quantity'] ?? 0;
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Insert into database
-    $stmt = $conn->prepare("INSERT INTO item_transfers (item_name, item_code, from_store_id, to_store_id, available_quantity, shared_quantity) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO item_transfers (item_id, item_code, from_store_id, to_store_id, available_quantity, shared_quantity) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssiiii", $item_name, $item_code, $from_store_id, $to_store_id, $available_quantity, $shared_quantity);
 
     if ($stmt->execute()) {

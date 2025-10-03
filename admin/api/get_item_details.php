@@ -10,21 +10,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Use item_name instead of id
-    $stmt = $conn->prepare("SELECT item_name, item_code, item_quantity FROM items WHERE item_name = ?");
-    $stmt->bind_param("s", $item_name); // bind as string
+    // Fetch all items with this name
+    $stmt = $conn->prepare("SELECT id,store_id,store_name, item_name, item_code, item_quantity FROM items WHERE id = ?");
+    $stmt->bind_param("s", $item_name);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
-        $data = $result->fetch_assoc();
+        $items = [];
+        while ($row = $result->fetch_assoc()) {
+            $items[] = [
+                'id' => $row['id'],
+                'store_id' => $row['store_id'],
+                'store_name' => $row['store_name'],
+                'item_name' => $row['item_name'],
+                'item_code' => $row['item_code'],
+                'available_quantity' => (int) $row['item_quantity']
+            ];
+        }
+
         echo json_encode([
             'success' => true,
-            'data' => [
-                'item_name' => $data['item_name'],
-                'item_code' => $data['item_code'],
-                'available_quantity' => (int) $data['item_quantity']
-            ]
+            'data' => $items
         ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Item not found.']);
@@ -35,4 +42,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
 }
-?>

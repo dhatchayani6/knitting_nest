@@ -1,3 +1,52 @@
+<?php
+session_start();
+include('../includes/config.php'); // adjust path if needed
+// Check if bio_id exists in the session
+if (!isset($_SESSION['bio_id'])) {
+    echo '<p class="text-center">Please log in to view your products.</p>';
+    exit;
+}
+
+$bioid = $_SESSION['bio_id'];
+
+
+// 1️⃣ Get shop name for logged-in shopkeeper
+$stmt = $conn->prepare("SELECT shop_name,shop_id FROM shopkeeper WHERE shopkeeper_bioid = ?");
+$stmt->bind_param("s", $bioid);
+$stmt->execute();
+$result = $stmt->get_result();
+$shop = $result->fetch_assoc();
+$stmt->close();
+
+
+$itemCount = 0;
+$transferCount = 0;
+$shopName = "";
+
+if ($shop) {
+    $shopName = $shop['shop_name'];
+    $shopid = $shop['shop_id'];
+
+    // 2️⃣ Count items belonging to shop
+    $stmt = $conn->prepare("SELECT COUNT(*) AS item_count FROM items WHERE store_name = ?");
+    $stmt->bind_param("s", $shopName);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $countRow = $result->fetch_assoc();
+    $itemCount = $countRow['item_count'] ?? 0;
+    $stmt->close();
+
+ // 3️⃣ Count transferred items
+    $stmt = $conn->prepare("SELECT COUNT(*) AS transfer_count FROM item_transfers WHERE to_store_id = ?");
+    $stmt->bind_param("i", $shopid);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $countRow = $result->fetch_assoc();
+    $transferCount = $countRow['transfer_count'] ?? 0;
+    $stmt->close();
+}
+?>
+
 <!doctype html>
 <html class="no-js" lang="en">
 
@@ -39,15 +88,17 @@
             <article class="content dashboard-page bg-white">
                 <section>
                     <div class="container">
+                       <?php echo "<h4 class='mb-2'> <strong>" . htmlspecialchars($shopName) . "</strong></h4>"?>
                         <div class="row  justify-content-center">
+                            
                             <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
                                     <div class="card-body text-center">
-                                        <h5 class="card-title"> LOGIN LIST</h5>
-                                        <h6 class="card-subtitle mb-2 text-body-secondary">ADMIN/USER</h6>
-                                        <p class="card-text">COUNT:</p>
+                                        <h5 class="card-title"> ITEMS LIST</h5>
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
+                                        <p class="card-text">COUNT: <?php echo $itemCount; ?><?php ?></p>
 
                                     </div>
                                 </div>
@@ -57,15 +108,15 @@
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
                                     <div class="card-body text-center">
-                                        <h5 class="card-title">TOTAL COURSE</h5>
-                                        <h6 class="card-subtitle mb-2 text-body-secondary">COURSE CODE/NAME</h6>
-                                        <p class="card-text">COUNT:</p>
+                                        <h5 class="card-title">TRANSFER ITEMS</h5>
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
+                                        <p class="card-text">COUNT:<?php echo $shopid?></p>
 
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="col-sm-6 col-md-4 mb-3">
+                            <!-- <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
@@ -76,9 +127,9 @@
 
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
 
-                            <div class="col-sm-6 col-md-4 mb-3">
+                            <!-- <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
@@ -89,9 +140,9 @@
 
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
 
-                            <div class="col-sm-6 col-md-4 mb-3">
+                            <!-- <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
@@ -102,7 +153,7 @@
 
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                 </section>

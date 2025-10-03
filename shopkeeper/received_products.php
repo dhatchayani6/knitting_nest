@@ -75,7 +75,7 @@ $bioid = $_SESSION['bio_id'];
                                             <th scope="col">SHARED QUANTITY</th>
                                             <th scope="col">FROM STORE </th>
                                             <th scope="col">TO STORE </th>
-                                            <th scope="col">Transfer Stattus</th>
+                                            <th scope="col">Transfer Status</th>
 
 
 
@@ -143,8 +143,8 @@ $bioid = $_SESSION['bio_id'];
                                 <td>${item.item_code}</td>
                                 <td>${item.available_quantity}</td>
                                 <td>${item.shared_quantity}</td>
-                                <td>${item.from_shop_name}</td>
-                                <td>${item.to_shop_name}</td>
+                                <td>${item.from_store}</td>
+                                <td>${item.to_store}</td>
                                 <td>${statusHTML}</td>
                             </tr>
                         `;
