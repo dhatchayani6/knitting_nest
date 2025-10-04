@@ -70,6 +70,9 @@ $lowStockCount = $row['low_stock_count'];
 
                 </li>
                 <li>
+                    <a href="overall_stocks.php"> <i class="fas fa-box"></i>Overall Stock Details </a>
+                </li>
+                <li>
                     <a href="notification.php">
                         <i class="fa fa-bell" style="font-size: 20px; position: relative;">
                             <span id="lowStockBadge" class="badge bg-danger" style="    position: absolute;
