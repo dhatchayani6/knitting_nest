@@ -22,6 +22,8 @@ $item_code = $_POST['item_code'] ?? null;
 $item_quantity = $_POST['item_quantity'] ?? null;
 $item_price = $_POST['item_price'] ?? null;
 $stock_level = $_POST['stock_level'] ?? null;
+$vendor_name = $_POST['vendor_name'] ?? null;
+
 $created_at = date("Y-m-d H:i:s");
 
 // Handle file upload
@@ -75,6 +77,8 @@ if (!$stock_level)
     $missing_fields[] = "stock_level";
 if (!$items_image)
     $missing_fields[] = "items_image";
+if (!$vendor_name)
+    $missing_fields[] = "vendor_name";
 
 if (!empty($missing_fields)) {
     http_response_code(400);
@@ -88,12 +92,13 @@ if (!empty($missing_fields)) {
 
 // Prepare and bind
 $stmt = $conn->prepare("INSERT INTO items 
-    (store_name, store_id, item_name, item_code, item_quantity, item_price, stock_level, items_image, created_at) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    (store_name, store_id, vendor_name, item_name, item_code, item_quantity, item_price, stock_level, items_image, created_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 $stmt->bind_param(
-    "sisssddss",
+    "sisssddsss",
     $store_name,
     $store_id,
+    $vendor_name,
     $item_name,
     $item_code,
     $item_quantity,
@@ -102,6 +107,7 @@ $stmt->bind_param(
     $items_image,
     $created_at
 );
+
 
 // Execute
 if ($stmt->execute()) {

@@ -67,11 +67,11 @@ include('../includes/config.php'); // adjust path if needed
                                         <tr>
                                             <th>S.No</th>
                                             <th>STORE NAME</th>
-                                            <th>ITEM NAME</th>
-                                            <th>ITEM CODE</th>
-                                            <th>QUANTITY</th>
-                                            <th>ITEM PRICE</th>
-                                            <th>STOCK LEVEL</th>
+                                            <th> NAME</th>
+                                            <th> CODE</th>
+                                            <th>AVAILABLE QUANTITY</th>
+                                            <th>UNIT PRICE</th>
+                                            <th>STOCK </th>
                                             <th>IMAGE</th>
                                         </tr>
                                     </thead>

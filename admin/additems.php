@@ -116,6 +116,11 @@ if ($result && $result->num_rows > 0) {
                                             <input class="form-control" type="text" name="stock_level"
                                                 placeholder="Enter the Minimum stock level" required>
                                         </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">VENDOR NAME</label>
+                                            <input class="form-control" type="text" name="vendor_name"
+                                                placeholder="Enter the vendor name" required>
+                                        </div>
                                     </div>
 
                                     <!-- Submit Button -->

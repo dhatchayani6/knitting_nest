@@ -1,32 +1,30 @@
 <?php
-header("Content-Type: application/json"); //we recieve data from json formate
+header("Content-Type: application/json"); // we receive data in JSON format
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
-include __DIR__ .'/../../includes/config.php'; // Include database connection
+include __DIR__ . '/../../includes/config.php'; // Include database connection
 
 // Fetch all stores
-$sql = "SELECT id, store_name, item_name, item_code,item_quantity,item_price, stock_level,created_at FROM items ORDER BY id ASC";
+$sql = "SELECT id, store_name, item_name, item_code, item_quantity, item_price, stock_level, created_at FROM items ORDER BY id ASC";
 $result = $conn->query($sql);
-
 
 $items = [];
 if ($result && $result->num_rows > 0) {
-    
+
     $sno = 1;
     while ($row = $result->fetch_assoc()) {
         $items[] = [
-            "sno" => $sno++,//add serial number
-             "id" => $row['id'],
+            "sno" => $sno++, // add serial number
+            "id" => $row['id'],
             "store_name" => $row['store_name'],
             "item_name" => $row['item_name'],
             "item_code" => $row['item_code'],
             "item_quantity" => $row['item_quantity'],
             "item_price" => $row['item_price'],
-             "item_price" => $row['item_price'],
-              "stock_level" => $row['stock_level'],
-              "created_at"  => $row['created_at'],
+            "stock_level" => $row['stock_level'],
+            "created_at" => date("d-m-Y", strtotime($row['created_at'])), // format date
         ];
     }
 

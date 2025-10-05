@@ -106,7 +106,7 @@
         }
 
         .vh-100 {
-            height: 90vh !important;
+            height: 89vh !important;
         }
 
         .navbar-brand img {

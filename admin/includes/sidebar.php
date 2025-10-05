@@ -23,6 +23,23 @@ $lowStockCount = $row['low_stock_count'];
                 </li>
                 <li>
                     <a href="#">
+                        <i class="fa fa-table"></i> Items
+                        <i class="fa arrow"></i>
+                    </a>
+                    <ul class="sidebar-nav">
+                        <li>
+                            <a href="additems.php"> Add items </a>
+                        </li>
+                        <li>
+                            <a href="manage_item.php"> Manage items </a>
+                        </li>
+                        <li>
+                            <a href="overall_stocks.php"></i>Overall Stock Details </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">
                         <i class="fa-solid fa-cart-shopping"></i>Stores
                         <i class="fa arrow"></i>
                     </a>
@@ -35,20 +52,7 @@ $lowStockCount = $row['low_stock_count'];
                         </li>
                     </ul>
                 </li>
-                <li>
-                    <a href="#">
-                        <i class="fa fa-table"></i> Items
-                        <i class="fa arrow"></i>
-                    </a>
-                    <ul class="sidebar-nav">
-                        <li>
-                            <a href="additems.php"> Add items </a>
-                        </li>
-                        <li>
-                            <a href="manage_item.php"> Manage items </a>
-                        </li>
-                    </ul>
-                </li>
+
                 <li>
                     <a href="#">
                         <i class="fa fa-pencil-square-o"></i> Transfer Details
@@ -64,15 +68,9 @@ $lowStockCount = $row['low_stock_count'];
 
                     </ul>
 
-
-
-
-
                 </li>
-                <li>
-                    <a href="overall_stocks.php"> <i class="fas fa-box"></i>Overall Stock Details </a>
-                </li>
-                <li>
+
+                <!-- <li>
                     <a href="notification.php">
                         <i class="fa fa-bell" style="font-size: 20px; position: relative;">
                             <span id="lowStockBadge" class="badge bg-danger" style="    position: absolute;
@@ -84,10 +82,13 @@ $lowStockCount = $row['low_stock_count'];
                             </span>
                         </i> Notification
                     </a>
+                </li> -->
+
+
+                <li>
+                    <a href="overall_sales_report.php">
+                        <i class="fa-solid fa-file"></i> Sales Report</a>
                 </li>
-
-
-
 
 
 

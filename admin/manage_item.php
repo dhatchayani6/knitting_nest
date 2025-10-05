@@ -61,7 +61,7 @@ include('../includes/config.php'); // adjust path if needed
                             <!-- Card Wrapper -->
                             <div class="card shadow-sm rounded-3 border p-3">
                                 <div class="d-flex justify-content-between">
-                                    <h5 class="mb-3">MANAGE ITEMS</h5>
+                                    <h5 class="mb-3">STORE DETAILS</h5>
                                     <div class="mb-3">
                                         <input type="text" id="searchInput" class="form-control"
                                             placeholder="Search items...">
@@ -73,11 +73,11 @@ include('../includes/config.php'); // adjust path if needed
                                             <tr class="text-center">
                                                 <th>S.No</th>
                                                 <th>STORE NAME</th>
-                                                <th>ITEMS NAME</th>
                                                 <th>ITEMS CODE</th>
-                                                <th>STOCK LEVEL</th>
-                                                <th>ITEMS QUANTITY</th>
-                                                <th>ITEMS PRICE</th>
+                                                <th>ITEMS NAME</th>
+                                                <th>STOCK</th>
+                                                <th>AVAILABALE QUANTITY</th>
+                                                <th>UNIT PRICE</th>
                                                 <th>CREATED AT</th>
                                                 <th>ACTIONS</th>
                                             </tr>
@@ -206,7 +206,7 @@ include('../includes/config.php'); // adjust path if needed
                             rows = `<tr><td colspan="9" class="text-center">${response.message}</td></tr>`;
                         }
                         $('#manageitems').html(rows);
-                        
+
 
                     },
                     error: function (xhr) {

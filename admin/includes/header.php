@@ -13,6 +13,7 @@
                             </div> -->
         </form>
     </div>
+    <h6 class="mb-0">Store Manager</h6>
 
     <div class="header-block header-block-nav">
         <ul class="nav-profile">
