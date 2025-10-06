@@ -76,9 +76,10 @@ include('../includes/config.php'); // adjust path if needed
                                                 <th>ITEMS CODE</th>
                                                 <th>ITEMS NAME</th>
                                                 <th>STOCK</th>
+                                                <th>LAST PURCHASE DATE</th>
                                                 <th>AVAILABALE QUANTITY</th>
                                                 <th>UNIT PRICE</th>
-                                                <th>CREATED AT</th>
+                                                <th>SALES COUNT</th>
                                                 <th>ACTIONS</th>
                                             </tr>
                                         </thead>
@@ -171,27 +172,30 @@ include('../includes/config.php'); // adjust path if needed
 
     <script>
         $(document).ready(function () {
+             let limit = 10;
 
             // Fetch items and populate DataTable
-            function fetchItems() {
-                $.ajax({
-                    url: 'api/itemsview.php',
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function (response) {
-                        let rows = "";
-                        if (response.status === "success") {
-                            response.data.forEach(function (item) {
-                                rows += `
+function fetchItems(page = 1) {
+    $.ajax({
+        url: 'api/itemsview.php',
+        type: 'GET',
+        data: { page: page },  // Send page number to backend
+        dataType: 'json',
+        success: function (response) {
+            let rows = "";
+            if (response.status === "success" && response.data.length > 0) {
+                response.data.forEach(function (item) {
+                    rows += `
                         <tr>
                             <td>${item.sno}</td>
                             <td>${item.store_name}</td>
-                            <td>${item.item_name}</td>
                             <td>${item.item_code}</td>
+                            <td>${item.item_name}</td>
                             <td>${item.stock_level}</td>
+                            <td>${item.created_at}</td>
                             <td>${item.item_quantity}</td>
                             <td>${item.item_price}</td>
-                            <td>${item.created_at}</td>
+                            <td>10</td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-primary edit-item" data-id="${item.id}" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
                                     <i class="fa fa-edit"></i>
@@ -201,30 +205,41 @@ include('../includes/config.php'); // adjust path if needed
                                 </button>
                             </td>
                         </tr>`;
-                            });
-                        } else {
-                            rows = `<tr><td colspan="9" class="text-center">${response.message}</td></tr>`;
-                        }
-                        $('#manageitems').html(rows);
-
-
-                    },
-                    error: function (xhr) {
-                        console.log("Fetch error:", xhr.responseText);
-                        $('#manageitems').html(`<tr><td colspan="9" class="text-center">Failed to fetch items</td></tr>`);
-                    }
                 });
+            } else {
+                rows = `<tr><td colspan="10" class="text-center">${response.message || 'No records found'}</td></tr>`;
             }
+            $('#manageitems').html(rows);
+
+            // Pagination buttons
+            let paginationHTML = "";
+            if (response.total_pages > 1) {
+                paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page - 1}" ${response.current_page === 1 ? 'disabled' : ''}>Prev</button> `;
+                for (let i = 1; i <= response.total_pages; i++) {
+                    paginationHTML += `<button class="btn btn-sm ${i === response.current_page ? 'btn-primary' : 'btn-light'} stock-page-btn" data-page="${i}">${i}</button> `;
+                }
+                paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page + 1}" ${response.current_page === response.total_pages ? 'disabled' : ''}>Next</button>`;
+            }
+            $("#pagination").html(paginationHTML);
+        },
+        error: function (xhr) {
+            console.log("Fetch error:", xhr.responseText);
+            $('#manageitems').html(`<tr><td colspan="10" class="text-center">Failed to fetch items</td></tr>`);
+            $("#pagination").html("");
+        }
+    });
+}
 
             fetchItems(); // Load on page start
 
-            // Search functionality
-            $('#searchInput').on('keyup', function () {
-                const value = $(this).val().toLowerCase();
-                $('#manageitems tr').filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
-            });
+            // Delegate event for dynamically created buttons
+$(document).on('click', '.stock-page-btn', function () {
+    const page = $(this).data('page');
+    if (page && page > 0) {
+        fetchItems(page);
+    }
+});
+
 
             // Edit modal
             $(document).on('click', '.edit-item', function () {

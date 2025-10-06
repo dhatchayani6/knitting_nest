@@ -25,12 +25,13 @@ include('../includes/config.php'); // adjust path if needed
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
         crossorigin="anonymous"></script>
-        <style>
-            tr th{
-                    font-size: 15px;
-    font-weight: 600;
-            }
-        </style>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css" />
+    <style>
+        tr th {
+            font-size: 15px;
+            font-weight: 600;
+        }
+    </style>
 
 </head>
 
@@ -57,37 +58,49 @@ include('../includes/config.php'); // adjust path if needed
                     </button> -->
                 </div>
                 <!-- table start -->
-                <section class="section card shadow border p-3">
+                <section class="section ">
                     <div class="container">
-                        <h5 class="mb-3">TRANSFER PRODUCTS</h5>
                         <div class="row">
-                            <div class="table-responsive">
-                                <table class="table table-striped text-center ">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">S.No</th>
-                                            <th scope="col">ITEMS NAME</th>
-                                            <th scope="col">ITEMS CODE</th>
 
-                                            <th scope="col">TOTAL ITEMS QUANTITY</th>
-                                            <th scope="col">SHARED QUANTITY</th>
-                                            <!-- <th scope="col"> ITEMS PRICE</th> -->
+                            <div class="card shadow-sm rounded-3 border p-3">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="mb-3">TRANSFER PRODUCTS</h5>
+                                    <div class="mb-3">
+                                        <input type="text" id="searchInput" class="form-control"
+                                            placeholder="Search items...">
+                                    </div>
+                                </div>
+                                
+                                    <div class="table-responsive ">
+                                        <table class="table table-striped text-center " id="table_id">
+                                            <thead  class="table-light ">
+                                                <tr>
+                                                    <th scope="col">S.No</th>
+                                                    <th scope="col">ITEMS NAME</th>
+                                                    <th scope="col">ITEMS CODE</th>
 
-                                            <th scope="col">FROM STORE </th>
-                                            <th scope="col">TO STORE </th>
-                                            <th scope="col">TRANSFER STATUS</th>
+                                                    <th scope="col">TOTAL ITEMS QUANTITY</th>
+                                                    <th scope="col">SHARED QUANTITY</th>
+                                                    <!-- <th scope="col"> ITEMS PRICE</th> -->
 
-                                        </tr>
-                                    </thead>
-                                    <tbody class="transfer_details" id="transfer_details">
+                                                    <th scope="col">FROM STORE </th>
+                                                    <th scope="col">TO STORE </th>
+                                                    <th scope="col">TRANSFER DATE </th>
+                                                    <th scope="col">TRANSFER STATUS</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody class="transfer_details" id="transfer_details">
 
 
-                                    </tbody>
-                                </table>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div id="pagination" class="mt-3"></div>
+
+                                
                             </div>
-
-                            <div id="pagination" class="mt-3"></div>
-
                         </div>
                     </div>
                 </section>
@@ -105,10 +118,12 @@ include('../includes/config.php'); // adjust path if needed
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
+    <script src="https://cdn.datatables.net/2.3.4/js/dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             let limit = 10;
 
             function fetchTransferDetails(page = 1) {
@@ -120,10 +135,10 @@ include('../includes/config.php'); // adjust path if needed
                         limit: limit
                     },
                     dataType: "json",
-                    success: function (response) {
+                    success: function(response) {
                         if (response.status === "Fetch transfer details success") {
                             let rows = "";
-                            $.each(response.data, function (index, item) {
+                            $.each(response.data, function(index, item) {
                                 rows += `
                             <tr>
                                 <td>${item.sno}</td>
@@ -137,6 +152,7 @@ include('../includes/config.php'); // adjust path if needed
 
                                 <td>${item.from_store}</td>
                                 <td>${item.to_store}</td>
+                                 <td>${item.created_at}</td>
                                 <td>${item.transfer_status}</td>
 
                             </tr>
@@ -164,7 +180,7 @@ include('../includes/config.php'); // adjust path if needed
                             $("#pagination").html("");
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.log("Error:", error);
                         $("#transfer_details").html(`
                     <tr>
@@ -180,13 +196,13 @@ include('../includes/config.php'); // adjust path if needed
             fetchTransferDetails(1);
 
             // handle pagination button click
-            $(document).on("click", ".page-btn", function () {
+            $(document).on("click", ".page-btn", function() {
                 let page = $(this).data("page");
                 fetchTransferDetails(page);
             });
 
             // DELETE ALL TRANSFER DATA
-            $(document).on('click', '#deleteAllBtn', function () {
+            $(document).on('click', '#deleteAllBtn', function() {
                 if (!confirm("Are you sure you want to delete ALL transfer records? This action cannot be undone.")) {
                     return;
                 }
@@ -195,7 +211,7 @@ include('../includes/config.php'); // adjust path if needed
                     url: 'api/transfer_delete.php', // your delete API
                     type: 'POST', // safer than DELETE for cross-browser
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.status === 'success') {
                             alert(response.message);
                             location.reload(); // refresh entire page
@@ -203,7 +219,7 @@ include('../includes/config.php'); // adjust path if needed
                             alert("Error: " + response.message);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.log(xhr.responseText);
                         alert("An error occurred: " + error);
                     }

@@ -57,7 +57,7 @@ include('../includes/config.php'); // adjust path if needed
                                     <div class="mb-3">
                                         <label for="formFile" class="form-label">STORE NAME</label>
                                         <input class="form-control" type="text" name="stores_name"
-                                            placeholder="Enter the storename" required>
+                                            placeholder="Enter the Store Name" required>
                                     </div>
 
 
@@ -69,7 +69,7 @@ include('../includes/config.php'); // adjust path if needed
                                     <div class="mb-3">
                                         <label for="formFileMultiple" class="form-label">STORE LOCATION</label>
                                         <input class="form-control" type="text" name="stores_location"
-                                            placeholder="Enter the store location" required>
+                                            placeholder="Enter the Store Location" required>
                                     </div>
                                 </div>
 
@@ -108,14 +108,15 @@ include('../includes/config.php'); // adjust path if needed
                 <section class="section">
                     <div class="container">
                         <div class="row">
-                            <table class="table text-center">
+                            <div class="table-responsive">
+                            <table class="table  table-striped text-center">
                                 <thead>
                                     <tr>
-                                        <th scope="col">s.no</th>
-                                        <th scope="col">store name</th>
-                                        <th scope="col">store location</th>
+                                        <th scope="col">S.NO</th>
+                                        <th scope="col">STORE NAME</th>
+                                        <th scope="col">STORE LOCATION</th>
                                         <!-- <th scope="col">usertype</th> -->
-                                        <th scope="col">Actions</th>
+                                        <th scope="col">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody id="fetch_stores">
@@ -123,6 +124,7 @@ include('../includes/config.php'); // adjust path if needed
 
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
                 </section>

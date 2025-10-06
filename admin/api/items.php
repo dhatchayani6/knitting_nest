@@ -19,6 +19,7 @@ $store_name = $_POST['store_name'] ?? null;
 $store_id = $_POST['store_id'] ?? null;
 $item_name = $_POST['item_name'] ?? null;
 $item_code = $_POST['item_code'] ?? null;
+$sub_category = $_POST['sub_category'] ?? null;
 $item_quantity = $_POST['item_quantity'] ?? null;
 $item_price = $_POST['item_price'] ?? null;
 $stock_level = $_POST['stock_level'] ?? null;
@@ -79,6 +80,8 @@ if (!$items_image)
     $missing_fields[] = "items_image";
 if (!$vendor_name)
     $missing_fields[] = "vendor_name";
+if (!$sub_category)
+    $missing_fields[] = "sub_category";
 
 if (!empty($missing_fields)) {
     http_response_code(400);
@@ -92,10 +95,10 @@ if (!empty($missing_fields)) {
 
 // Prepare and bind
 $stmt = $conn->prepare("INSERT INTO items 
-    (store_name, store_id, vendor_name, item_name, item_code, item_quantity, item_price, stock_level, items_image, created_at) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    (store_name, store_id, vendor_name, item_name, item_code, item_quantity, item_price, stock_level, items_image,sub_category, created_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 $stmt->bind_param(
-    "sisssddsss",
+    "sisssddssss",
     $store_name,
     $store_id,
     $vendor_name,
@@ -105,6 +108,7 @@ $stmt->bind_param(
     $item_price,
     $stock_level,
     $items_image,
+    $sub_category,
     $created_at
 );
 

@@ -71,7 +71,9 @@ if ($result2 && $result2->num_rows > 0) {
             <article class="content dashboard-page bg-white">
                 <section class="section">
                     <div class="container">
-                        <span class="fw-bold">TRANSFER PRODUCTS</span>
+
+                     <div class="card shadow-sm rounded-3 border p-4">
+                        <span class="fw-bold">ITEMS TRANSFER </span>
                         <form action="" id="transfer_product" method="post" class="p-3">
                             <div class="row">
                                 <div class="col-md-6">
@@ -104,6 +106,11 @@ if ($result2 && $result2->num_rows > 0) {
                                             <!-- readonly> -->
                                     </div>
 
+                                     <div class="mb-3">
+                                            <label class="form-label">ITEM IMAGE</label>
+                                            <input class="form-control" type="file" name="items_image" required>
+                                        </div>
+
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -112,7 +119,7 @@ if ($result2 && $result2->num_rows > 0) {
                                             class="form-control" readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">SHARED QUANTITY</label>
+                                        <label class="form-label">QUANTITY</label>
                                         <input type="number" name="shared_quantity" id="shared_quantity"
                                             class="form-control" placeholder="Enter quantity" required>
                                     </div>
@@ -127,12 +134,19 @@ if ($result2 && $result2->num_rows > 0) {
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
+
+                                     <div class="mb-3">
+                                        <label class="form-label">SUB_CATEGORY</label>
+                                        <input type="text" name="sub_category" id="sub_category"
+                                            class="form-control" readonly>
+                                    </div>
                                 </div>
                                 <div class="col-12 text-center">
                                     <button type="submit" class="btn btn-primary w-35">Transfer Product</button>
                                 </div>
                             </div>
                         </form>
+                     </div>
                     </div>
                 </section>
 
@@ -175,6 +189,7 @@ if ($result2 && $result2->num_rows > 0) {
 
                     $('#item_code').val(first.item_code);
                     $('#available_quantity').val(first.available_quantity);
+                     $('#sub_category').val(first.sub_category);
 
                     // ✅ Fill display and hidden inputs
                     $('#from_store_name').val(first.store_name); // visible to user
@@ -190,16 +205,17 @@ if ($result2 && $result2->num_rows > 0) {
                                 <option value="${item.id}" 
                                         data-code="${item.item_code}" 
                                         data-qty="${item.available_quantity}" 
+                                         data-sub_category="${item.sub_category}" 
                                         data-store-id="${item.store_id}" 
                                         data-store-name="${item.store_name}">
-                                    Code: ${item.item_code}, Qty: ${item.available_quantity}, Store: ${item.store_name}
+                                    Code: ${item.item_code}, Qty: ${item.available_quantity}, Store: ${item.store_name}, sub_category: ${item.sub_category}
                                 </option>`);
                         });
                     } else {
                         $('#multiple_items_container').hide();
                     }
                 } else {
-                    $('#item_code, #available_quantity, #from_store_name, #from_store_id').val('');
+                    $('#item_code, #available_quantity, #sub_category, #from_store_name, #from_store_id').val('');
                     alert(res.message);
                 }
             },
@@ -209,7 +225,7 @@ if ($result2 && $result2->num_rows > 0) {
             }
         });
     } else {
-        $('#item_code, #available_quantity, #from_store_name, #from_store_id').val('');
+        $('#item_code, #available_quantity, #sub_category, #from_store_name, #from_store_id').val('');
         $('#multiple_items_container').hide();
     }
 });
@@ -235,10 +251,16 @@ $(document).on('change', '#specific_item_select', function () {
             return;
         }
         
+        
+    var form = $(this)[0]; // get the form DOM element
+    var formData = new FormData(form); // Create FormData object from form
+
         $.ajax({
             url: 'api/transfer_item.php',
             type: 'POST',
-            data: $(this).serialize(),
+            data: formData,
+            processData: false,  // Important! Prevent jQuery from converting data into a query string
+            contentType: false,  // Important! Let the browser set the correct Content-Type including multipart/form-data boundary
             dataType: 'json',
             success: function (res) {
                 if (res.success) {

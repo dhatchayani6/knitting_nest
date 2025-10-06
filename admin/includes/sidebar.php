@@ -5,10 +5,10 @@ $result = $conn->query($sql);
 $row = $result->fetch_assoc();
 $lowStockCount = $row['low_stock_count'];
 ?>
-<aside class="sidebar">
-    <div class="sidebar-container">
+<aside class="sidebar bg-light">
+    <div class="sidebar-container text-dark">
         <div class="sidebar-header">
-            <div class="brand d-flex align-items-center">
+            <div class="brand d-flex align-items-center text-dark">
                 <div class="logo mb-5">
                     <img src="images/logo1.png" alt="logo" width="30" height="30">
                 </div>
@@ -60,7 +60,7 @@ $lowStockCount = $row['low_stock_count'];
                     </a>
                     <ul class="sidebar-nav">
                         <li>
-                            <a href="transfer_product.php"> Transfer products </a>
+                            <a href="transfer_product.php">Items Transfer  </a>
                         </li>
                         <li>
                             <a href="transfer_details.php"> List of Transfer Details </a>

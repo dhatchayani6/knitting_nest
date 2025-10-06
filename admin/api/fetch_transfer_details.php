@@ -28,7 +28,7 @@ $sql = "SELECT
             t.available_quantity,
             t.shared_quantity,
             t.transfer_status,
-            t.created_at,
+              DATE(t.created_at) AS created_at,
             f.stores_name AS from_store,
             to_shop.stores_name AS to_store
         FROM item_transfers t

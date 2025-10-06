@@ -63,6 +63,8 @@ if ($result && $result->num_rows > 0) {
             <article class="content dashboard-page bg-white">
                 <section class="section">
                     <div class="container">
+
+                     <div class="card shadow-sm rounded-3 border p-4">
                         <span class="fw-bold">ADD SHOPKEEPER</span>
                         <form action="" id="addshopkeeper" method="post" class="p-3">
                             <div class="row">
@@ -136,6 +138,7 @@ if ($result && $result->num_rows > 0) {
 
                             </div>
                         </form>
+                     </div>
                     </div>
                 </section>
 
@@ -147,16 +150,17 @@ if ($result && $result->num_rows > 0) {
                 <section class="section">
                     <div class="container">
                         <div class="row">
-                            <table class="table text-center">
+                            <div class="table-responsive">
+                            <table class="table table-striped text-center">
                                 <thead>
                                     <tr>
-                                        <th scope="col">s.no</th>
-                                        <th scope="col">store name</th>
-                                        <th scope="col">store location</th>
-                                        <th scope="col">shopkeeper name</th>
-                                        <th scope="col">shopkeeper bio_id</th>
-                                        <th scope="col">shopkeeper password</th>
-                                        <th scope="col">Actions</th>
+                                        <th scope="col">S.NO</th>
+                                        <th scope="col">STORE NAME</th>
+                                        <th scope="col">STORE LOCATIONS</th>
+                                        <th scope="col">SHOPKEEPER NAME</th>
+                                        <th scope="col">SHOPKEEPER BIO_ID</th>
+                                        <th scope="col">SHOPKEEPER PASSWORD</th>
+                                        <th scope="col">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody id="fetch_shopkeeper">
@@ -164,6 +168,7 @@ if ($result && $result->num_rows > 0) {
 
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
                 </section>

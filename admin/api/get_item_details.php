@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Fetch all items with this name
-    $stmt = $conn->prepare("SELECT id,store_id,store_name, item_name, item_code, item_quantity FROM items WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id,store_id,store_name, item_name, item_code, item_quantity, sub_category FROM items WHERE id = ?");
     $stmt->bind_param("s", $item_name);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -25,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'store_name' => $row['store_name'],
                 'item_name' => $row['item_name'],
                 'item_code' => $row['item_code'],
-                'available_quantity' => (int) $row['item_quantity']
+                'available_quantity' => (int) $row['item_quantity'],
+                 'sub_category' => $row['sub_category'],
             ];
         }
 
