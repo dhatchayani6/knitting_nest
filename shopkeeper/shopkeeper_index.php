@@ -36,7 +36,7 @@ if ($shop) {
     $itemCount = $countRow['item_count'] ?? 0;
     $stmt->close();
 
- // 3️⃣ Count transferred items
+    // 3️⃣ Count transferred items
     $stmt = $conn->prepare("SELECT COUNT(*) AS transfer_count FROM item_transfers WHERE to_store_id = ?");
     $stmt->bind_param("i", $shopid);
     $stmt->execute();
@@ -68,7 +68,88 @@ if ($shop) {
         crossorigin="anonymous"></script>
     <link rel="stylesheet" href="css/vendor.css">
     <link rel="stylesheet" id="theme-style" href="css/app.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .metric-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
 
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .metric-card h6 {
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-card h4 {
+            font-weight: 600;
+        }
+
+        .stats-cards .card {
+            background-color: #f8f9fa;
+            /* soft light background */
+        }
+
+        .low-notification-scroll {
+            height: 100%;
+            max-height: 510px;
+            overflow-y: scroll;
+            padding: 20px;
+            background: #fff;
+        }
+
+        .btn-outline-secondary {
+            color: #6c757d !important;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35em 0.75em;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        /* In Stock - soft green */
+        .status-in-stock {
+            background-color: #d1e7dd;
+            /* light green */
+            color: #0f5132;
+            /* dark green text */
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        /* Low Stock - soft yellow */
+        .status-low-stock {
+            background-color: #fff3cd;
+            /* light yellow */
+            color: #664d03;
+            /* dark yellow text */
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        /* Out of Stock - soft red */
+        .status-out-stock {
+            background-color: #f8d7da;
+            /* light red/pink */
+            color: #842029;
+            /* dark red text */
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .tab-product-performance {
+            padding: 10px;
+            background: #ffff;
+        }
+    </style>
 </head>
 
 <body>
@@ -88,9 +169,58 @@ if ($shop) {
             <article class="content dashboard-page bg-white">
                 <section>
                     <div class="container">
-                       <?php echo "<h4 class='mb-2'> <strong>" . htmlspecialchars($shopName) . "</strong></h4>"?>
-                        <div class="row  justify-content-center">
-                            
+                        <?php echo "<h4 class='mb-2'> <strong>" . htmlspecialchars($shopName) . "</strong></h4>" ?>
+                        <div class="row g-3 mb-4">
+                            <div class="col-6 col-sm-3 col-lg-3">
+                                <div
+                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                    <i class="bi bi-box-seam fs-2 text-primary me-2"></i>
+                                    <div>
+                                        <h6>Total Products</h6>
+                                        <h4>1,245</h4>
+                                        <span class="text-success">+12% last month</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6 col-sm-3 col-lg-3">
+                                <div
+                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                    <i class="bi bi-stack fs-2 text-success me-2"></i>
+                                    <div>
+                                        <h6>Products in Stock</h6>
+                                        <h4>890</h4>
+                                        <span class="text-success">+5% last week</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6 col-sm-3 col-lg-3">
+                                <div
+                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                    <i class="bi bi-exclamation-triangle fs-2 text-warning me-2"></i>
+                                    <div>
+                                        <h6>Low Stock Items</h6>
+                                        <h4>35</h4>
+                                        <span class="text-danger">-30% from target</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6 col-sm-3 col-lg-3">
+                                <div
+                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                    <i class="bi bi-x-circle fs-2 text-danger me-2"></i>
+                                    <div>
+                                        <h6>Out of Stock Items</h6>
+                                        <h4>15</h4>
+                                        <span class="text-danger">+2 last day</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="row  justify-content-center">
+
                             <div class="col-sm-6 col-md-4 mb-3">
 
 
@@ -110,13 +240,13 @@ if ($shop) {
                                     <div class="card-body text-center">
                                         <h5 class="card-title">TRANSFER ITEMS</h5>
                                         <h6 class="card-subtitle mb-2 text-body-secondary"></h6>
-                                        <p class="card-text">COUNT:<?php echo $shopid?></p>
+                                        <p class="card-text">COUNT:<?php echo $shopid ?></p>
 
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- <div class="col-sm-6 col-md-4 mb-3">
+                            <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
@@ -127,9 +257,9 @@ if ($shop) {
 
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
 
-                            <!-- <div class="col-sm-6 col-md-4 mb-3">
+                            <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
@@ -140,9 +270,9 @@ if ($shop) {
 
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
 
-                            <!-- <div class="col-sm-6 col-md-4 mb-3">
+                            <div class="col-sm-6 col-md-4 mb-3">
 
 
                                 <div class=" card shadow p-3 mb-5 bg-light rounded">
@@ -153,13 +283,185 @@ if ($shop) {
 
                                     </div>
                                 </div>
-                            </div> -->
-                        </div>
+                            </div>
+                        </div> -->
                     </div>
                 </section>
                 <!-- <?php include('includes/center-content.php') ?> -->
+
+                <section>
+                    <h6><i class="bi bi-bell fs-6 text-primary me-2"></i>Low Stock Notifications</h6>
+
+                    <div class="row">
+                        <!-- Left Column: Product Cards -->
+                        <div class="col-lg-6 mb-4 low-notification-scroll">
+                            <div class="d-flex flex-column gap-3">
+                                <!-- Repeat Product Card -->
+                                <div class="card mb-0 p-3 shadow-sm product-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="logo1.png" alt="Smartwatch" class="rounded me-3" width="40"
+                                            height="40">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">Smartwatch Series 5</h6>
+                                            <p class="mb-1 text-muted" style="font-size:0.9rem;">SKU: SW-S-005</p>
+                                            <p class="mb-1" style="font-size:0.9rem;">Stock: <span
+                                                    class="text-danger">12</span> (Min: 20)</p>
+                                        </div>
+                                        <div class="mt-2 d-flex flex-column gap-2">
+                                            <button class="btn btn-outline-secondary btn-sm">View
+                                                Details</button>
+                                            <button class="btn btn-primary btn-sm">Replenish Stock</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Duplicate for more products -->
+                                <div class="card mb-0 p-3 shadow-sm product-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="logo1.png" alt="Smartwatch" class="rounded me-3" width="40"
+                                            height="40">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">Smartwatch Series 5</h6>
+                                            <p class="mb-1 text-muted" style="font-size:0.9rem;">SKU: SW-S-005</p>
+                                            <p class="mb-1" style="font-size:0.9rem;">Stock: <span
+                                                    class="text-danger">12</span> (Min: 20)</p>
+                                        </div>
+                                        <div class="mt-2 d-flex flex-column gap-2">
+                                            <button class="btn btn-outline-secondary btn-sm">View
+                                                Details</button>
+                                            <button class="btn btn-primary btn-sm">Replenish Stock</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Add more cards as needed -->
+                                <div class="card mb-0 p-3 shadow-sm product-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="logo1.png" alt="Smartwatch" class="rounded me-3" width="40"
+                                            height="40">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">Smartwatch Series 5</h6>
+                                            <p class="mb-1 text-muted" style="font-size:0.9rem;">SKU: SW-S-005</p>
+                                            <p class="mb-1" style="font-size:0.9rem;">Stock: <span
+                                                    class="text-danger">12</span> (Min: 20)</p>
+                                        </div>
+                                        <div class="mt-2 d-flex flex-column gap-2">
+                                            <button class="btn btn-outline-secondary btn-sm">View
+                                                Details</button>
+                                            <button class="btn btn-primary btn-sm">Replenish Stock</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card mb-0 p-3 shadow-sm product-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="logo1.png" alt="Smartwatch" class="rounded me-3" width="40"
+                                            height="40">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">Smartwatch Series 5</h6>
+                                            <p class="mb-1 text-muted" style="font-size:0.9rem;">SKU: SW-S-005</p>
+                                            <p class="mb-1" style="font-size:0.9rem;">Stock: <span
+                                                    class="text-danger">12</span> (Min: 20)</p>
+                                        </div>
+                                        <div class="mt-2 d-flex flex-column gap-2">
+                                            <button class="btn btn-outline-secondary btn-sm">View
+                                                Details</button>
+                                            <button class="btn btn-primary btn-sm">Replenish Stock</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card mb-0 p-3 shadow-sm product-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="logo1.png" alt="Smartwatch" class="rounded me-3" width="40"
+                                            height="40">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">Smartwatch Series 5</h6>
+                                            <p class="mb-1 text-muted" style="font-size:0.9rem;">SKU: SW-S-005</p>
+                                            <p class="mb-1" style="font-size:0.9rem;">Stock: <span
+                                                    class="text-danger">12</span> (Min: 20)</p>
+                                        </div>
+                                        <div class="mt-2 d-flex flex-column gap-2">
+                                            <button class="btn btn-outline-secondary btn-sm">View
+                                                Details</button>
+                                            <button class="btn btn-primary btn-sm">Replenish Stock</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Sales Chart -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card p-3 shadow-sm h-100">
+                                <h6>Sales & Profit Trend</h6>
+                                <small>Monthly overview of sales performance.</small>
+                                <canvas id="salesChart" width="400" height="280"></canvas>
+                                <div class="chart-legend">
+                                    <span class="legend-sales"><span class="legend-color"></span> Sales</span>
+                                    <span class="legend-profit"><span class="legend-color"></span> Profit</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- table for product performance -->
+                <section class="tab-product-performance shadow">
+                    <h5>Top Product Performance</h5>
+                    <small>Overview of best-selling items.</small>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Units Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Wireless Mouse Pro</td>
+                                    <td>Accessories</td>
+                                    <td>120</td>
+                                    <td>$2,400</td>
+                                    <td><span class="status-badge status-in-stock">In Stock</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Mechanical Keyboard</td>
+                                    <td>Peripherals</td>
+                                    <td>85</td>
+                                    <td>$4,250</td>
+                                    <td><span class="status-badge status-in-stock">In Stock</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Webcam HD 1080p</td>
+                                    <td>Video</td>
+                                    <td>40</td>
+                                    <td>$1,200</td>
+                                    <td><span class="status-badge status-low-stock">Low Stock</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Monitor Stand Ergo</td>
+                                    <td>Office</td>
+                                    <td>60</td>
+                                    <td>$900</td>
+                                    <td><span class="status-badge status-in-stock">In Stock</span></td>
+                                </tr>
+                                <tr>
+                                    <td>External SSD 1TB</td>
+                                    <td>Storage</td>
+                                    <td>25</td>
+                                    <td>$1,500</td>
+                                    <td><span class="status-badge status-out-stock">Out of Stock</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </article>
             <!-- center content ended -->
+
+
+
 
             <div class="modal fade" id="modal-media">
                 <div class="modal-dialog modal-lg">
@@ -263,6 +565,75 @@ if ($shop) {
     </script>
     <script src="js/vendor.js"></script>
     <script src="js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'Sales',
+                        data: [1800, 2700, 1800, 2900, 3200, 3600],
+                        borderColor: '#1766a4',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: false,
+                    },
+                    {
+                        label: 'Profit',
+                        data: [900, 1200, 850, 1600, 1800, 2000],
+                        borderColor: '#444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: false,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return value >= 1000 ? value / 1000 + 'k' : value;
+                            },
+                            font: {
+                                size: 12,
+                            },
+                        },
+                        grid: {
+                            drawBorder: false,
+                        },
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 12,
+                            },
+                        },
+                        grid: {
+                            drawBorder: false,
+                            drawOnChartArea: false,
+                        },
+                    },
+                },
+            },
+        });
+    </script>
 </body>
 
 </html>
