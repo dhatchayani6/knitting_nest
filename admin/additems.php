@@ -85,10 +85,10 @@ if ($result && $result->num_rows > 0) {
                                                 placeholder="Enter the Item name" required>
                                         </div>
 
-                                         <div class="mb-3">
+                                        <div class="mb-3">
                                             <label class="form-label">SUB CATEGORY</label>
                                             <input class="form-control" type="text" name="sub_category"
-                                                placeholder="Enter the Sub Category" required>
+                                                placeholder="Enter the Sub Category">
                                         </div>
 
                                         <div class="mb-3">

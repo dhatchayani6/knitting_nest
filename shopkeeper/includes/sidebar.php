@@ -6,14 +6,14 @@ $row = $result->fetch_assoc();
 $lowStockCount = $row['low_stock_count'];
 ?>
 
-<aside class="sidebar">
+<aside class="sidebar bg-light">
     <div class="sidebar-container">
         <div class="sidebar-header">
             <div class="brand d-flex align-items-center">
                 <div class="logo mb-5">
                     <img src="images/logo1.png" alt="logo" width="30" height="30">
                 </div>
-                <span>KNITTING NEST</span>
+                <span class="text-dark">KNITTING NEST</span>
             </div>
         </div>
         <nav class="menu">
@@ -25,7 +25,30 @@ $lowStockCount = $row['low_stock_count'];
                     </a>
                 </li>
 
-                <!-- Items -->
+                <!-- sales (billing) -->
+                <li>
+                    <a href="sales.php"><i class="fa-solid fa-cart-shopping"></i> Sales</a>
+                </li>
+
+                <!-- view products -->
+                <li>
+                    <a href="view_products.php"><i class="fa-solid fa-box-open"></i> View Products</a>
+                </li>
+
+                <!-- received products -->
+                <li>
+                    <a href="received_products.php"><i class="fa-solid fa-truck"></i> Received Products</a>
+                </li>
+
+                <!-- sales report -->
+                <li>
+                    <a href="sales_report.php"><i class="fa-solid fa-chart-line"></i> Sales Report</a>
+                </li>
+
+
+
+
+                <!-- Items
                 <li>
                     <a href="#">
                         <i class="fa fa-table"></i> Items
@@ -34,9 +57,9 @@ $lowStockCount = $row['low_stock_count'];
                     <ul class="sidebar-nav">
                         <li><a href="view_products.php">View Products</a></li>
                     </ul>
-                </li>
+                </li> -->
 
-                <!-- Transfer Details -->
+                <!-- Transfer Details
                 <li>
                     <a href="#">
                         <i class="fa fa-pencil-square-o"></i> Transfer Details
@@ -45,18 +68,19 @@ $lowStockCount = $row['low_stock_count'];
                     <ul class="sidebar-nav">
                         <li><a href="received_products.php">Received Products</a></li>
                     </ul>
-                </li>
+                </li> -->
 
                 <!-- Notification -->
-               <li>
-    <a href="notifications.php">
-        <i class="fa fa-bell" style="font-size: 20px; position: relative;">
-            <span id="lowStockBadge" class="badge bg-danger" style="position: absolute; top: 0px; right: -182px; font-size: 11px; border-radius: 50%;">
-                <?= isset($lowStockCount) ? $lowStockCount : 0 ?>
-            </span>
-        </i> Notification
-    </a>
-</li>
+                <!-- <li>
+                    <a href="notifications.php">
+                        <i class="fa fa-bell" style="font-size: 20px; position: relative;">
+                            <span id="lowStockBadge" class="badge bg-danger"
+                                style="position: absolute; top: 0px; right: -182px; font-size: 11px; border-radius: 50%;">
+                                <?= isset($lowStockCount) ? $lowStockCount : 0 ?>
+                            </span>
+                        </i> Notification
+                    </a>
+                </li> -->
 
             </ul>
         </nav>

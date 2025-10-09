@@ -80,8 +80,8 @@ if (!$items_image)
     $missing_fields[] = "items_image";
 if (!$vendor_name)
     $missing_fields[] = "vendor_name";
-if (!$sub_category)
-    $missing_fields[] = "sub_category";
+// if (!$sub_category)
+//     $missing_fields[] = "sub_category";
 
 if (!empty($missing_fields)) {
     http_response_code(400);
