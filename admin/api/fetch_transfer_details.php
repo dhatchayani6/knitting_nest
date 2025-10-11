@@ -9,10 +9,28 @@ include __DIR__ . '/../../includes/config.php';
 // Pagination parameters
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $offset = ($page - 1) * $limit;
 
-// Count total records
-$totalQuery = $conn->query("SELECT COUNT(*) as total FROM item_transfers");
+// 🟨 Modify your base query to include WHERE condition if search is present
+$whereClause = '';
+if (!empty($search)) {
+    // Escape input for safety — consider prepared statements for security!
+    $search = mysqli_real_escape_string($conn, $search);
+    $whereClause = "WHERE 
+        i.item_name LIKE '%$search%' OR 
+        i.item_code LIKE '%$search%' OR 
+        f.stores_name LIKE '%$search%' OR 
+        to_shop.stores_name LIKE '%$search%' OR 
+        t.transfer_status LIKE '%$search%'";
+}
+
+// Count total records for pagination
+$totalQuery = $conn->query("SELECT COUNT(*) as total FROM item_transfers t
+                            LEFT JOIN items i ON t.item_id = i.id
+                            LEFT JOIN shops f ON t.from_store_id = f.id
+                            LEFT JOIN shops to_shop ON t.to_store_id = to_shop.id
+                            $whereClause");
 $totalRow = $totalQuery->fetch_assoc();
 $total_records = $totalRow['total'];
 $total_pages = ceil($total_records / $limit);
@@ -28,13 +46,14 @@ $sql = "SELECT
             t.available_quantity,
             t.shared_quantity,
             t.transfer_status,
-              DATE(t.created_at) AS created_at,
+            DATE(t.created_at) AS created_at,
             f.stores_name AS from_store,
             to_shop.stores_name AS to_store
         FROM item_transfers t
         LEFT JOIN items i ON t.item_id = i.id
         LEFT JOIN shops f ON t.from_store_id = f.id
         LEFT JOIN shops to_shop ON t.to_store_id = to_shop.id
+        $whereClause
         ORDER BY t.id DESC
         LIMIT $offset, $limit";
 

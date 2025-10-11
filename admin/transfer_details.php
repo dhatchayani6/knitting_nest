@@ -2,6 +2,8 @@
 
 include('../includes/config.php'); // adjust path if needed
 
+
+
 ?>
 
 <!doctype html>
@@ -126,13 +128,14 @@ include('../includes/config.php'); // adjust path if needed
         $(document).ready(function() {
             let limit = 10;
 
-            function fetchTransferDetails(page = 1) {
+            function fetchTransferDetails(page = 1, search = '') {
                 $.ajax({
                     url: "api/fetch_transfer_details.php", // your API for transfer table
                     type: "GET",
                     data: {
                         page: page,
-                        limit: limit
+                        limit: limit,
+                         search: search  // ✅ Add search input
                     },
                     dataType: "json",
                     success: function(response) {
@@ -227,6 +230,12 @@ include('../includes/config.php'); // adjust path if needed
             });
 
         });
+
+        $('#searchInput').on('keyup', function() {
+    const searchValue = $(this).val().trim();
+    fetchTransferDetails(1, searchValue);
+});
+
     </script>
 
 
