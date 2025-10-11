@@ -117,6 +117,7 @@ if ($result2 && $result2->num_rows > 0) {
                                             <th>Item Price</th>
                                             <th>Available Quantity</th>
                                             <th>Remaining Quantity</th>
+                                            <th>Sales Date</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -240,6 +241,8 @@ if ($result2 && $result2->num_rows > 0) {
                             <td>${sale.item_price}</td>
                             <td>${sale.item_quantity}</td>
                             <td>${sale.remaining_quantity}</td>
+                                                        <td>${sale.created_at}</td>
+
                             <td>
                                 <button class="btn btn-sm btn-danger delete-sale" data-id="${sale.id}">
                                     <i class="fa fa-trash"></i>
