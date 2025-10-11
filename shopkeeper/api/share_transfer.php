@@ -31,7 +31,7 @@ $offset = ($page - 1) * $limit;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Build base WHERE clause
-$where = "t.to_store_id = ?";
+$where = "t.from_store_id = ?";
 $params = [$shop_id];
 $types = "i";
 
@@ -69,7 +69,7 @@ $sql = "SELECT
             t.available_quantity,
             t.shared_quantity,
             t.transfer_status,
-           DATE_FORMAT( t.created_at , '%d-%m-%y') AS created_at,
+            t.created_at,
             f.stores_name AS from_store,
             to_shop.stores_name AS to_store
         FROM item_transfers t

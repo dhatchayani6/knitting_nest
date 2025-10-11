@@ -68,7 +68,7 @@ include('../includes/config.php'); // adjust path if needed
                                 <div class="d-flex justify-content-between">
                                     <h5 class="mb-3">TRANSFER PRODUCTS</h5>
                                     <div class="mb-3">
-                                        <input type="text" id="searchInput" class="form-control"
+                                        <input type="text" id="search_input" class="form-control"
                                             placeholder="Search items...">
                                     </div>
                                 </div>
@@ -197,12 +197,20 @@ include('../includes/config.php'); // adjust path if needed
 
             // Initial fetch
             fetchTransferDetails(1);
+            
+            // Search input keyup
+            $('#search_input').on('keyup', function () {
+                let search = $(this).val();
+                fetchTransferDetails(1, search);
+            })
 
-            // handle pagination button click
-            $(document).on("click", ".page-btn", function() {
+            // Pagination click
+            $(document).on("click", ".page-btn", function () {
                 let page = $(this).data("page");
-                fetchTransferDetails(page);
+                let search = $('#search_input').val();
+                fetchTransferDetails(page, search);
             });
+
 
             // DELETE ALL TRANSFER DATA
             $(document).on('click', '#deleteAllBtn', function() {

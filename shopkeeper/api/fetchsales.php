@@ -3,6 +3,20 @@ include('../../includes/config.php');
 
 header('Content-Type: application/json');
 
+// 🗓️ Get today's date (Y-m-d format to match MySQL DATE)
+// 🗓️ Get selected date, default to today
+$date = isset($_GET['date']) && $_GET['date'] !== '' ? $_GET['date'] : date('Y-m-d');
+
+// Pagination
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+$offset = ($page - 1) * $limit;
+
+// ✅ Total rows for pagination
+$totalResult = $conn->query("SELECT COUNT(*) AS total FROM sales WHERE DATE(created_at) = '$date'");
+$totalRows = $totalResult->fetch_assoc()['total'];
+$totalPages = ceil($totalRows / $limit);
+
 $query = "
     SELECT 
         id,
@@ -14,7 +28,9 @@ $query = "
         remaining_quantity,
         DATE_FORMAT(created_at, '%d-%m-%Y') AS created_date
     FROM sales
+     WHERE DATE(created_at) = '$date'   -- ✅ Only today's records
     ORDER BY created_at DESC
+    LIMIT $limit OFFSET $offset
 ";
 
 $result = $conn->query($query);
@@ -36,13 +52,17 @@ if ($result && $result->num_rows > 0) {
 
     echo json_encode([
         'status' => 'success',
-        'message' => 'Sales fetched successfully',
+        'message' => ' Today Sales fetched successfully',
+          'current_page' => $page,
+        'total_pages' => $totalPages,
         'data' => $sales
     ], JSON_PRETTY_PRINT);
 } else {
     echo json_encode([
         'status' => 'error',
         'message' => 'No sales found',
+         'current_page' => $page,
+        'total_pages' => 0,
         'data' => []
     ], JSON_PRETTY_PRINT);
 }

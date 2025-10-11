@@ -189,11 +189,11 @@ include('../includes/config.php'); // adjust path if needed
             let limit = 10;
 
             // Fetch items and populate DataTable
-            function fetchItems(page = 1) {
+            function fetchItems(page = 1,search = '') {
                 $.ajax({
                     url: 'api/itemsview.php',
                     type: 'GET',
-                    data: { page: page },  // Send page number to backend
+                    data: { page: page,limit: limit,search: search },  // Send page number to backend
                     dataType: 'json',
                     success: function (response) {
                         let rows = "";
@@ -245,6 +245,12 @@ include('../includes/config.php'); // adjust path if needed
             }
 
             fetchItems(); // Load on page start
+
+            // Search input keyup
+            $('#searchInput').on('keyup', function () {
+                let search = $(this).val();
+                fetchItems(1, search);
+            });
 
             // Delegate event for dynamically created buttons
             $(document).on('click', '.stock-page-btn', function () {
