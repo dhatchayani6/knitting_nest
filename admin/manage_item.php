@@ -120,32 +120,45 @@ include('../includes/config.php'); // adjust path if needed
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="item_name" class="form-label">Item Name</label>
-                                    <input type="text" class="form-control" id="item_name" name="item_name" required>
-                                </div>
-
-                                <div class="mb-3">
                                     <label for="item_code" class="form-label">Item Code</label>
                                     <input type="text" class="form-control" id="item_code" name="item_code" required>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="stock_level" class="form-label">Stock Level</label>
+                                    <label for="item_name" class="form-label">Item Name</label>
+                                    <input type="text" class="form-control" id="item_name" name="item_name" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="stock_level" class="form-label">Stock </label>
                                     <input type="number" class="form-control" id="stock_level" name="stock_level"
                                         required>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="item_quantity" class="form-label">Item Quantity</label>
+                                    <label for="purchase_date" class="form-label">Purchase Date</label>
+                                    <input type="date" class="form-control" id="purchase_dates" name="purchase_date"
+                                        readonly>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="item_quantity" class="form-label">Available Quantity</label>
                                     <input type="number" class="form-control" id="item_quantity" name="item_quantity"
                                         required>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="item_price" class="form-label">Item Price</label>
+                                    <label for="item_price" class="form-label">Unit Price</label>
                                     <input type="number" class="form-control" id="item_price" name="item_price"
                                         required>
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="sales_count" class="form-label">Sales Count</label>
+                                    <input type="number" class="form-control" id="sales_count" name="sales_count"
+                                        readonly>
+                                </div>
+
                             </form>
                         </div>
                         <div class="modal-footer">
@@ -154,6 +167,7 @@ include('../includes/config.php'); // adjust path if needed
                         </div>
                     </div>
                 </div>
+
             </div>
             <!-- edit model end -->
 
@@ -172,30 +186,30 @@ include('../includes/config.php'); // adjust path if needed
 
     <script>
         $(document).ready(function () {
-             let limit = 10;
+            let limit = 10;
 
             // Fetch items and populate DataTable
-function fetchItems(page = 1) {
-    $.ajax({
-        url: 'api/itemsview.php',
-        type: 'GET',
-        data: { page: page },  // Send page number to backend
-        dataType: 'json',
-        success: function (response) {
-            let rows = "";
-            if (response.status === "success" && response.data.length > 0) {
-                response.data.forEach(function (item) {
-                    rows += `
+            function fetchItems(page = 1) {
+                $.ajax({
+                    url: 'api/itemsview.php',
+                    type: 'GET',
+                    data: { page: page },  // Send page number to backend
+                    dataType: 'json',
+                    success: function (response) {
+                        let rows = "";
+                        if (response.status === "success" && response.data.length > 0) {
+                            response.data.forEach(function (item) {
+                                rows += `
                         <tr>
                             <td>${item.sno}</td>
                             <td>${item.store_name}</td>
                             <td>${item.item_code}</td>
                             <td>${item.item_name}</td>
                             <td>${item.stock_level}</td>
-                            <td>${item.created_at}</td>
+                            <td>${item.purchase_date}</td>
                             <td>${item.item_quantity}</td>
                             <td>${item.item_price}</td>
-                            <td>10</td>
+                            <td>${item.sales_count}</td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-primary edit-item" data-id="${item.id}" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
                                     <i class="fa fa-edit"></i>
@@ -205,40 +219,40 @@ function fetchItems(page = 1) {
                                 </button>
                             </td>
                         </tr>`;
-                });
-            } else {
-                rows = `<tr><td colspan="10" class="text-center">${response.message || 'No records found'}</td></tr>`;
-            }
-            $('#manageitems').html(rows);
+                            });
+                        } else {
+                            rows = `<tr><td colspan="10" class="text-center">${response.message || 'No records found'}</td></tr>`;
+                        }
+                        $('#manageitems').html(rows);
 
-            // Pagination buttons
-            let paginationHTML = "";
-            if (response.total_pages > 1) {
-                paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page - 1}" ${response.current_page === 1 ? 'disabled' : ''}>Prev</button> `;
-                for (let i = 1; i <= response.total_pages; i++) {
-                    paginationHTML += `<button class="btn btn-sm ${i === response.current_page ? 'btn-primary' : 'btn-light'} stock-page-btn" data-page="${i}">${i}</button> `;
-                }
-                paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page + 1}" ${response.current_page === response.total_pages ? 'disabled' : ''}>Next</button>`;
+                        // Pagination buttons
+                        let paginationHTML = "";
+                        if (response.total_pages > 1) {
+                            paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page - 1}" ${response.current_page === 1 ? 'disabled' : ''}>Prev</button> `;
+                            for (let i = 1; i <= response.total_pages; i++) {
+                                paginationHTML += `<button class="btn btn-sm ${i === response.current_page ? 'btn-primary' : 'btn-light'} stock-page-btn" data-page="${i}">${i}</button> `;
+                            }
+                            paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page + 1}" ${response.current_page === response.total_pages ? 'disabled' : ''}>Next</button>`;
+                        }
+                        $("#pagination").html(paginationHTML);
+                    },
+                    error: function (xhr) {
+                        console.log("Fetch error:", xhr.responseText);
+                        $('#manageitems').html(`<tr><td colspan="10" class="text-center">Failed to fetch items</td></tr>`);
+                        $("#pagination").html("");
+                    }
+                });
             }
-            $("#pagination").html(paginationHTML);
-        },
-        error: function (xhr) {
-            console.log("Fetch error:", xhr.responseText);
-            $('#manageitems').html(`<tr><td colspan="10" class="text-center">Failed to fetch items</td></tr>`);
-            $("#pagination").html("");
-        }
-    });
-}
 
             fetchItems(); // Load on page start
 
             // Delegate event for dynamically created buttons
-$(document).on('click', '.stock-page-btn', function () {
-    const page = $(this).data('page');
-    if (page && page > 0) {
-        fetchItems(page);
-    }
-});
+            $(document).on('click', '.stock-page-btn', function () {
+                const page = $(this).data('page');
+                if (page && page > 0) {
+                    fetchItems(page);
+                }
+            });
 
 
             // Edit modal
@@ -257,8 +271,18 @@ $(document).on('click', '.stock-page-btn', function () {
                             $('#item_name').val(item.item_name);
                             $('#item_code').val(item.item_code);
                             $('#stock_level').val(item.stock_level);
+                            // $("#purchase_dates").val(item.purchase_date);
+                            // Fix purchase date for date input
+                            if (item.purchase_date) {
+                                const parts = item.purchase_date.split('-');
+                                const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                                $("#purchase_dates").val(formattedDate);
+                            } else {
+                                $("#purchase_dates").val('');
+                            }
                             $('#item_quantity').val(item.item_quantity);
                             $('#item_price').val(item.item_price);
+                            $('#sales_count').val(item.sales_count);
                         } else {
                             Swal.fire({
                                 icon: 'error',

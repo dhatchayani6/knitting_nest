@@ -77,8 +77,7 @@ if ($result && $result->num_rows > 0) {
                                         </div>
                                         <div class="mb-3">
                                             <label for="formFileMultiple" class="form-label">DATE OF PURCHASE </label>
-                                            <input class="form-control" type="DATE" name="date_of_purchase"
-                                                required>
+                                            <input class="form-control" type="DATE" name="date_of_purchase" required>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">ITEM IMAGE</label>
@@ -103,14 +102,15 @@ if ($result && $result->num_rows > 0) {
                                         </div>
                                         <div class="mb-3">
                                             <label for="formFileMultiple" class="form-label">PURCHASE QUANTITY </label>
-                                            <input class="form-control" type="text" name="purchase_quantity" placeholder="Enter the Purchase Quantity"
-                                                required>
+                                            <input class="form-control" type="text" name="purchase_quantity"
+                                                placeholder="Enter the Purchase Quantity" required>
                                         </div>
 
 
                                     </div>
                                     <div class="col-12  text-center ">
-                                        <button type="submit" name="purchase" class="btn btn-primary w-35">Purchase</button>
+                                        <button type="submit" name="purchase"
+                                            class="btn btn-primary w-35">Purchase</button>
                                     </div>
 
                                 </div>
@@ -133,7 +133,7 @@ if ($result && $result->num_rows > 0) {
                                         <tr>
                                             <th scope="col">S.NO</th>
                                             <th scope="col">ITEM NAME</th>
-                                            
+
                                             <th scope="col">ITEM CODE</th>
                                             <th scope="col">DATE OF PURCHASE </th>
                                             <th scope="col">DISTRIBUTOR NAME</th>
@@ -169,11 +169,11 @@ if ($result && $result->num_rows > 0) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
-            $(document).ready(function() {
+            $(document).ready(function () {
                 // 1️⃣ ADD SHOPKEEPER
-                $('#addpurchase').on('submit', function(e) {
+                $('#addpurchase').on('submit', function (e) {
                     e.preventDefault();
 
                     // Create a FormData object, before i create const with each input but image not value is a files means we use formdata
@@ -187,7 +187,7 @@ if ($result && $result->num_rows > 0) {
                         contentType: false, // important for file upload
                         processData: false, // important for file upload
 
-                        success: function(response) {
+                        success: function (response) {
                             console.log("Add response:", response);
                             if (response.status === "success") {
                                 Swal.fire({
@@ -207,7 +207,7 @@ if ($result && $result->num_rows > 0) {
                                 });
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.log("XHR error:", xhr.responseText);
                             Swal.fire({
                                 icon: 'error',
@@ -226,11 +226,11 @@ if ($result && $result->num_rows > 0) {
                     url: 'api/fetch_purchase.php', // Your API path
                     type: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         let rows = "";
                         if (response.status === "success" && response.data.length > 0) {
                             // Populate table rows if data exists
-                            response.data.forEach(function(purchase, index) {
+                            response.data.forEach(function (purchase, index) {
                                 rows += `
                         <tr>
                             <td>${purchase.sno}</td>
@@ -274,7 +274,7 @@ if ($result && $result->num_rows > 0) {
 
                         $('#purchase_order').html(rows);
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         console.log("Fetch error:", xhr.responseText);
                         $('#purchase_order').html(`<tr><td colspan="8" class="text-center text-danger"> NO purchase order</td></tr>`);
                         Swal.fire({
@@ -291,33 +291,55 @@ if ($result && $result->num_rows > 0) {
             purchase_order(); // Call fetch on page load
 
             // 3️⃣ DELETE STORE
-            $(document).on('click', '.delete-btn', function(e) {
+            $(document).on('click', '.delete-btn', function (e) {
                 e.preventDefault();
                 let id = $(this).data('id');
 
-                if (confirm("Are you sure you want to delete this store?")) {
-                    $.ajax({
-                        url: 'api/delete_purchase.php',
-                        type: 'POST',
-                        data: {
-                            id: id
-                        },
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === "success") {
-                                alert(response.message);
-                                purchase_order(); // Refresh table after deletion
-                            } else {
-                                alert("Error: " + response.message);
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This store will be deleted permanently.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: 'api/delete_purchase.php',
+                            type: 'POST',
+                            data: { id: id },
+                            dataType: 'json',
+                            success: function (response) {
+                                if (response.status === "success") {
+                                    Swal.fire(
+                                        'Deleted!',
+                                        response.message,
+                                        'success'
+                                    );
+                                    purchase_order(); // Refresh table after deletion
+                                } else {
+                                    Swal.fire(
+                                        'Error',
+                                        response.message,
+                                        'error'
+                                    );
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire(
+                                    'Error',
+                                    'Something went wrong while deleting store.',
+                                    'error'
+                                );
+                                console.log("Delete error:", xhr.responseText);
                             }
-                        },
-                        error: function(xhr) {
-                            console.log("Delete error:", xhr.responseText);
-                            alert("Something went wrong while deleting store.");
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             });
+
         });
     </script>
 
