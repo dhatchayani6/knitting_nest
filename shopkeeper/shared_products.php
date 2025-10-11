@@ -56,7 +56,7 @@ $bioid = $_SESSION['bio_id'];
                 <section class="section card border rounded shadow p-3">
                     <div class="container">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-3">RECEIVED PRODUCTS</h5>
+                            <h5 class="mb-3">TRANSFER PRODUCTS</h5>
                         <!-- Search Box -->
                         <div class="mb-3">
                             <input type="text" id="search_input" class="form-control"
@@ -75,7 +75,6 @@ $bioid = $_SESSION['bio_id'];
                                             <th scope="col">SHARED QUANTITY</th>
                                             <th scope="col">FROM STORE </th>
                                             <th scope="col">TO STORE </th>
-                                            <th scope="col">Transfer Date </th>
                                             <th scope="col">Transfer Status</th>
 
 
@@ -117,7 +116,7 @@ $bioid = $_SESSION['bio_id'];
 
             function fetchTransferDetails(page = 1, search = '') {
                 $.ajax({
-                    url: "api/fetch_transfer_details.php",
+                    url: "api/share_transfer.php",
                     type: "GET",
                     data: { page: page, limit: limit, search: search },
                     dataType: "json",
@@ -146,7 +145,6 @@ $bioid = $_SESSION['bio_id'];
                                 <td>${item.shared_quantity}</td>
                                 <td>${item.from_store}</td>
                                 <td>${item.to_store}</td>
-                                <td>${item.created_at}</td>
                                 <td>${statusHTML}</td>
                             </tr>
                         `;

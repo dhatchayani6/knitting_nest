@@ -10,10 +10,28 @@ include __DIR__ . '/../../includes/config.php'; // Include database connection
 $page = isset($_GET['page']) && $_GET['page'] > 0 ? (int) $_GET['page'] : 1;
 $limit = isset($_GET['limit']) && $_GET['limit'] > 0 ? (int) $_GET['limit'] : 10;
 $offset = ($page - 1) * $limit;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-// Count total items
-$totalQuery = $conn->query("SELECT COUNT(*) as total FROM items");
-$totalRow = $totalQuery->fetch_assoc();
+$whereClause = '';
+if (!empty($search)) {
+    // Escape input for safety — consider prepared statements for security!
+    $search = mysqli_real_escape_string($conn, $search);
+    $whereClause = "WHERE 
+        i.store_name LIKE '%$search%' OR 
+        i.item_name LIKE '%$search%' OR 
+        i.item_code LIKE '%$search%' OR 
+        p.purchase_date LIKE '%$search%' OR 
+        i.item_price LIKE '%$search%'";
+}
+
+// 🧮 Count total items (with WHERE clause)
+$totalSql = "SELECT COUNT(DISTINCT i.id) AS total 
+             FROM items i
+             LEFT JOIN purchase_order p ON i.item_code = p.purchase_code
+             LEFT JOIN sales s ON i.id = s.item_id
+             $whereClause";
+$totalResult = $conn->query($totalSql);
+$totalRow = $totalResult->fetch_assoc();
 $total_records = $totalRow['total'];
 $total_pages = ceil($total_records / $limit);
 
@@ -31,6 +49,7 @@ $sql = "SELECT
         FROM items i
         LEFT JOIN purchase_order p ON i.item_code = p.purchase_code
         LEFT JOIN sales s ON i.id = s.item_id
+         $whereClause
         GROUP BY i.id
         ORDER BY i.id ASC
         LIMIT $limit OFFSET $offset";

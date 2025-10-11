@@ -11,6 +11,7 @@ $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $offset = ($page - 1) * $limit;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // 🟨 Modify your base query to include WHERE condition if search is present
 $whereClause = '';
@@ -22,6 +23,7 @@ if (!empty($search)) {
         i.item_code LIKE '%$search%' OR 
         f.stores_name LIKE '%$search%' OR 
         to_shop.stores_name LIKE '%$search%' OR 
+        t.created_at LIKE '%$search%' OR 
         t.transfer_status LIKE '%$search%'";
 }
 
@@ -46,7 +48,7 @@ $sql = "SELECT
             t.available_quantity,
             t.shared_quantity,
             t.transfer_status,
-            DATE(t.created_at) AS created_at,
+            DATE_FORMAT(t.created_at, '%d-%m-%Y') AS created_at,
             f.stores_name AS from_store,
             to_shop.stores_name AS to_store
         FROM item_transfers t
