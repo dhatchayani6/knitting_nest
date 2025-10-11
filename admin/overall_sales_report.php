@@ -2,19 +2,99 @@
 session_start();
 include('../includes/config.php'); // adjust path if needed
 
+// ============================
+// 1. Summary Cards
+// ============================
+$summarySql = "
+    SELECT 
+        COUNT(s.id) AS total_sales,
+        SUM(s.item_price * s.item_quantity) AS total_revenue,
+        ROUND(AVG(s.item_price * s.item_quantity)) AS avg_order
+    FROM sales s
+";
+$summaryResult = $conn->query($summarySql);
+$summary = $summaryResult->fetch_assoc();
+
+// ============================
+// 2. Top Selling Products
+// ============================
+$topProducts = [];
+$topSql = "
+    SELECT s.item_name, s.item_code,
+           SUM(CAST(s.item_quantity AS UNSIGNED)) AS units_sold,
+           SUM(CAST(s.item_price AS UNSIGNED) * CAST(s.item_quantity AS UNSIGNED)) AS revenue
+    FROM sales s
+    GROUP BY s.item_name, s.item_code
+    ORDER BY units_sold DESC
+    LIMIT 5
+";
+
+$topResult = $conn->query($topSql);
+while ($row = $topResult->fetch_assoc()) {
+    $topProducts[] = $row;
+}
+
+// ============================
+// 3. Recent Transactions
+// ============================
+$recentTransactions = [];
+$recentSql = "
+    SELECT 
+        s.id AS trx_id,
+        st.stores_name,
+        s.item_name,
+        (CAST(s.item_price AS UNSIGNED) * CAST(s.item_quantity AS UNSIGNED)) AS amount,
+        DATE_FORMAT(s.created_at, '%d-%m-%Y') AS sale_date
+    FROM sales s
+    LEFT JOIN shops st ON s.store_id = st.id
+    ORDER BY s.created_at DESC
+    LIMIT 5
+";
 
 
-// fetch all shops names
-$sql = "SELECT id, stores_name FROM shops";
-$result = $conn->query($sql);
+$recentResult = $conn->query($recentSql);
+while ($row = $recentResult->fetch_assoc()) {
+    $recentTransactions[] = $row;
+}
 
-$shops = [];
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $shops[] = $row;
-    }
+// ============================
+// 4. Sales Trends per Month
+// ============================
+$labels = [];
+$salesData = [];
+$monthSql = "
+    SELECT DATE_FORMAT(s.created_at, '%b %Y') AS month,
+           SUM(s.item_price * s.item_quantity) AS total
+    FROM sales s
+    GROUP BY YEAR(s.created_at), MONTH(s.created_at)
+    ORDER BY s.created_at ASC
+";
+$monthResult = $conn->query($monthSql);
+while ($row = $monthResult->fetch_assoc()) {
+    $labels[] = $row['month'];
+    $salesData[] = (int) $row['total'];
+}
+
+// ============================
+// 5. Category Breakdown
+// ============================
+$categories = [];
+$categoryData = [];
+$catSql = "
+    SELECT i.sub_category,
+           SUM(s.item_price * s.item_quantity) AS total
+    FROM items i
+    LEFT JOIN sales s ON i.id = s.item_id
+    GROUP BY i.sub_category
+";
+$catResult = $conn->query($catSql);
+while ($row = $catResult->fetch_assoc()) {
+    $categories[] = $row['sub_category'] ?? 'Others';
+    $categoryData[] = (int) $row['total'];
 }
 ?>
+
+
 
 
 <!doctype html>
@@ -220,136 +300,97 @@ if ($result && $result->num_rows > 0) {
             <article class="content dashboard-page bg-white">
 
                 <section>
-                    <div class="summary-cards">
-                        <div class="summary-card">
+                    <!-- Summary Cards -->
+                    <div class="summary-cards d-flex flex-wrap gap-3 mb-4">
+                        <div class="summary-card p-3">
                             <h6>Total Sales</h6>
-                            <div class="value">8,500</div>
+                            <div class="value"><?= $summary['total_sales'] ?></div>
                         </div>
-                        <div class="summary-card">
+                        <div class="summary-card p-3">
                             <h6>Total Revenue</h6>
-                            <div class="value">Rs. 185,000</div>
+                            <div class="value">Rs. <?= $summary['total_revenue'] ?></div>
                         </div>
-                        <div class="summary-card">
+                        <div class="summary-card p-3">
                             <h6>Avg. Order Value</h6>
-                            <div class="value">Rs. 75.00</div>
+                            <div class="value">Rs. <?= $summary['avg_order'] ?></div>
                         </div>
-                        <div class="summary-card">
-                            <h6>Conversion Rate</h6>
-                            <div class="value">3.2%</div>
-                        </div>
+
                     </div>
+
                 </section>
-                <section class="analytics">
-                    <div class="chart-card">
+                <section class="analytics d-flex flex-wrap gap-3 mb-4">
+                    <div class="chart-card flex-fill p-3">
                         <h5>Sales Trends Over Time</h5>
                         <p class="text-muted small">Monthly sales performance across various metrics.</p>
-                        <canvas id="salesLineChart" width="400" height="280"></canvas>
+                        <canvas id="salesLineChart"></canvas>
                     </div>
-                    <div class="chart-card">
-                        <h5>Product Category Breakdown</h5>
+                    <!-- <div class="chart-card flex-fill p-3">
+                        <h5>Category Breakdown</h5>
                         <p class="text-muted small">Sales distribution across different product categories.</p>
-                        <canvas id="categoryDonutChart" width="400" height="280"></canvas>
-                    </div>
+                        <canvas id="categoryDonutChart"></canvas>
+                    </div> -->
                 </section>
 
-                <section class="d-flex flex-wrap gap-4">
-                    <section class="report-table flex-grow-1">
-                        <h5>Top Selling Products</h5>
-                        <table class="table">
-                            <thead>
+                <section class="report-table flex-grow-1">
+                    <h5>Top Selling Products</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Units Sold</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($topProducts)): ?>
+                                <?php foreach ($topProducts as $prod): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($prod['item_name']) ?></td>
+                                        <td><?= (int) $prod['units_sold'] ?></td>
+                                        <td>Rs. <?= number_format($prod['revenue']) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                                 <tr>
-                                    <th>Product Name</th>
-                                    <th>Category</th>
-                                    <th>Units Sold</th>
-                                    <th>Revenue</th>
+                                    <td colspan="3" class="text-center">No top selling products found.</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Wireless Headphones Pro</td>
-                                    <td><span class="badge badge-electronics">Electronics</span></td>
-                                    <td>1200</td>
-                                    <td>Rs. 72000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Organic Cotton T-Shirt</td>
-                                    <td><span class="badge badge-apparel">Apparel</span></td>
-                                    <td>2500</td>
-                                    <td>Rs. 50000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Smart Home Speaker X</td>
-                                    <td><span class="badge badge-electronics">Electronics</span></td>
-                                    <td>800</td>
-                                    <td>Rs. 48000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Aromatherapy Diffuser</td>
-                                    <td><span class="badge badge-homegoods">Home Goods</span></td>
-                                    <td>1500</td>
-                                    <td>Rs. 30000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Stainless Steel Water Bottle</td>
-                                    <td><span class="badge badge-homegoods">Home Goods</span></td>
-                                    <td>2000</td>
-                                    <td>Rs. 25000.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </section>
-                    <section class="report-table flex-grow-1">
-                        <h5>Recent Transactions</h5>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Transaction ID</th>
-                                    <th>Shop</th>
-                                    <th>Customer</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>TRX78901</td>
-                                    <td>Shop A</td>
-                                    <td>Alice Johnson</td>
-                                    <td>Rs. 120.50</td>
-                                    <td>2024-07-28</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78902</td>
-                                    <td>Shop B</td>
-                                    <td>Bob Williams</td>
-                                    <td>Rs. 75.00</td>
-                                    <td>2024-07-27</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78903</td>
-                                    <td>Shop A</td>
-                                    <td>Charlie Brown</td>
-                                    <td>Rs. 250.99</td>
-                                    <td>2024-07-27</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78904</td>
-                                    <td>Shop C</td>
-                                    <td>Diana Miller</td>
-                                    <td>Rs. 45.75</td>
-                                    <td>2024-07-26</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78905</td>
-                                    <td>Shop B</td>
-                                    <td>Eve Davis</td>
-                                    <td>Rs. 180.20</td>
-                                    <td>2024-07-26</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </section>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </section>
+
+                <section class="report-table flex-grow-1">
+                    <h5>Recent Transactions</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Shop</th>
+                                <th>Item</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($recentTransactions)): ?>
+                                <?php foreach ($recentTransactions as $trx): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($trx['trx_id']) ?></td>
+                                        <td><?= htmlspecialchars($trx['stores_name']) ?></td>
+                                        <td><?= htmlspecialchars($trx['item_name']) ?></td>
+                                        <td>Rs. <?= htmlspecialchars($trx['amount']) ?></td>
+                                        <td><?= htmlspecialchars($trx['sale_date']) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="text-center">No recent transactions found.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </section>
+
 
 
                 <!-- center content ended -->
@@ -376,74 +417,51 @@ if ($result && $result->num_rows > 0) {
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const salesCtx = document.getElementById('salesLineChart').getContext('2d');
-        const salesLineChart = new Chart(salesCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                datasets: [
-                    {
-                        label: 'Sales',
-                        data: [35000, 45000, 40000, 47000, 46000, 49000, 54000, 60000],
-                        borderColor: '#0d9488',
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        tension: 0.25,
-                        fill: false
-                    },
-                    {
-                        label: 'Other Metric',
-                        data: [1000, 2000, 1800, 1500, 2300, 2100, 2600, 2800],
-                        borderColor: '#2563eb',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { mode: 'index', intersect: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { drawBorder: false },
-                        ticks: {
-                            font: { size: 12 }
-                        }
-                    },
-                    x: {
-                        grid: { drawBorder: false, drawOnChartArea: false },
-                        ticks: { font: { size: 12 } }
-                    }
-                }
-            }
-        });
+        // Fetch dynamic sales data from PHP endpoint
+        fetch('api/sales_monthly_all.php')
+            .then(response => response.json())
+            .then(result => {
+                const salesCtx = document.getElementById('salesLineChart').getContext('2d');
 
-        const categoryCtx = document.getElementById('categoryDonutChart').getContext('2d');
-        const categoryDonutChart = new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Electronics', 'Apparel', 'Home Goods', 'Books', 'Beauty'],
-                datasets: [{
-                    data: [25, 20, 20, 15, 20],
-                    backgroundColor: ['#007b8a', '#009c66', '#44b2af', '#caeaf6', '#1f2f37'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: '70%',
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
+                const salesLineChart = new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: result.labels,
+                        datasets: [
+                            {
+                                label: 'Sales',
+                                data: result.data,
+                                borderColor: '#0d9488',
+                                backgroundColor: 'transparent',
+                                borderWidth: 3,
+                                tension: 0.25,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { drawBorder: false },
+                                ticks: { font: { size: 12 } }
+                            },
+                            x: {
+                                grid: { drawBorder: false, drawOnChartArea: false },
+                                ticks: { font: { size: 12 } }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(err => console.error('Error fetching sales data:', err));
     </script>
+
 
 
 </body>

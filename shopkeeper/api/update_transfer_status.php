@@ -32,7 +32,7 @@ try {
 
     if ($status === 'accepted') {
         // Get transfer details
-        $stmt = $conn->prepare("SELECT item_id, shared_quantity, available_quantity, to_store_id FROM item_transfers WHERE id=?");
+        $stmt = $conn->prepare("SELECT item_id, shared_quantity, available_quantity, to_store_id, from_store_id FROM item_transfers WHERE id=?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -44,6 +44,7 @@ try {
             $shared_qty = (int) $transfer['shared_quantity'];
             $available_qty = (int) $transfer['available_quantity'];
             $to_store_id = $transfer['to_store_id'];
+            $from_store_id = $transfer['from_store_id'];
 
             // Reduce available_quantity in item_transfers
             $new_available = $available_qty - $shared_qty;
@@ -52,9 +53,9 @@ try {
             $stmt->execute();
             $stmt->close();
 
-            // Reduce quantity in source item
-            $stmt = $conn->prepare("UPDATE items SET item_quantity = item_quantity - ? WHERE id=?");
-            $stmt->bind_param("ii", $shared_qty, $item_id);
+            // Reduce quantity in source item (based on from_store_id)
+            $stmt = $conn->prepare("UPDATE items SET item_quantity = item_quantity - ? WHERE id=? AND store_id=?");
+            $stmt->bind_param("iii", $shared_qty, $item_id, $from_store_id);
             $stmt->execute();
             $stmt->close();
 
