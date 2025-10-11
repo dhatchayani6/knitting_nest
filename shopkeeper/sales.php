@@ -1,25 +1,48 @@
 <?php
 include('../includes/config.php');
+session_start();
 
-// 🏪 Fetch all shops
-$sql = "SELECT id, stores_name FROM shops";
-$result = $conn->query($sql);
-$shops = [];
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $shops[] = $row;
+// ✅ Step 1: Get logged-in user's bio_id from session
+$bio_id = $_SESSION['bio_id'] ?? 0;
+
+// Initialize store vars
+$store_id = 0;
+$store_name = "";
+
+// ✅ Step 2: Get the store assigned to this bio_id
+if ($bio_id) {
+    $stmt = $conn->prepare("
+        SELECT s.id, s.stores_name
+        FROM shops s
+        INNER JOIN shopkeeper sk ON s.id = sk.shop_id
+        WHERE sk.shopkeeper_bioid = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $bio_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    if ($row = $res->fetch_assoc()) {
+        $store_id = $row['id'];
+        $store_name = $row['stores_name'];
     }
+    $stmt->close();
 }
 
-// 📦 Fetch all items
+// ✅ Step 3: Fetch items belonging to this store
 $items = [];
-$result2 = $conn->query("SELECT id, item_name, item_code, item_quantity, item_price FROM items");
-if ($result2 && $result2->num_rows > 0) {
+if ($store_id) {
+    $stmt = $conn->prepare("SELECT * FROM items WHERE store_id = ?");
+    $stmt->bind_param("i", $store_id);
+    $stmt->execute();
+    $result2 = $stmt->get_result();
     while ($row2 = $result2->fetch_assoc()) {
         $items[] = $row2;
     }
+    $stmt->close();
 }
 ?>
+
 
 <!doctype html>
 <html lang="en">
@@ -51,6 +74,16 @@ if ($result2 && $result2->num_rows > 0) {
 
                             <form id="addsales" method="post" class="p-3">
                                 <div class="row">
+                                    <!-- STORE -->
+                                    <div class="col-md-6 mb-3 d-none">
+                                        <label class="form-label">STORE</label>
+                                        <input type="hidden" name="store_id"
+                                            value="<?php echo htmlspecialchars($store_id); ?>">
+                                        <input class="form-control" type="text"
+                                            value="<?php echo htmlspecialchars($store_name); ?>" readonly>
+                                    </div>
+
+
                                     <!-- ITEM NAME -->
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">ITEM NAME</label>
@@ -241,7 +274,7 @@ if ($result2 && $result2->num_rows > 0) {
                             <td>${sale.item_price}</td>
                             <td>${sale.item_quantity}</td>
                             <td>${sale.remaining_quantity}</td>
-                                                        <td>${sale.created_at}</td>
+                            <td>${sale.created_at}</td>
 
                             <td>
                                 <button class="btn btn-sm btn-danger delete-sale" data-id="${sale.id}">

@@ -221,39 +221,71 @@ if ($result && $result->num_rows > 0) {
 
                 <section>
                     <div class="summary-cards">
-                        <div class="summary-card">
-                            <h6>Total Sales</h6>
-                            <div class="value">8,500</div>
+                        <div class="summary-card d-flex align-items-center gap-3">
+                            <div class="icon bg-primary text-white p-2 rounded-circle">
+                                <i class="fas fa-boxes fa-1x"></i>
+                            </div>
+                            <div>
+                                <h6>Total Products</h6>
+                                <div class="value" id="totalProducts">0</div>
+                            </div>
                         </div>
-                        <div class="summary-card">
-                            <h6>Total Revenue</h6>
-                            <div class="value">Rs. 185,000</div>
+                        <div class="summary-card d-flex align-items-center gap-3">
+                            <div class="icon bg-success text-white p-2 rounded-circle">
+                                <i class="fas fa-shopping-cart fa-1x"></i>
+                            </div>
+                            <div>
+                                <h6>Total Sales</h6>
+                                <div class="value" id="totalSales">0</div>
+                            </div>
                         </div>
-                        <div class="summary-card">
-                            <h6>Avg. Order Value</h6>
-                            <div class="value">Rs. 75.00</div>
-                        </div>
-                        <div class="summary-card">
-                            <h6>Conversion Rate</h6>
-                            <div class="value">3.2%</div>
+                        <div class="summary-card d-flex align-items-center gap-3">
+                            <div class="icon bg-warning text-white p-2 rounded-circle">
+                                <i class="fas fa-dollar-sign fa-1x"></i>
+                            </div>
+                            <div>
+                                <h6>Total Revenue</h6>
+                                <div class="value" id="totalRevenue">Rs. 0</div>
+                            </div>
                         </div>
                     </div>
                 </section>
+
+
+
                 <section class="analytics">
                     <div class="chart-card">
                         <h5>Sales Trends Over Time</h5>
                         <p class="text-muted small">Monthly sales performance across various metrics.</p>
                         <canvas id="salesLineChart" width="400" height="280"></canvas>
                     </div>
-                    <div class="chart-card">
+                    <!-- <div class="chart-card">
                         <h5>Product Category Breakdown</h5>
                         <p class="text-muted small">Sales distribution across different product categories.</p>
                         <canvas id="categoryDonutChart" width="400" height="280"></canvas>
+                    </div> -->
+
+                    <div class="chart-card">
+                        <h5>Sales Details</h5>
+                        <table class="table" id="recentSalesTable">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Item Name</th>
+                                    <th>Item Code</th>
+                                    <th>Date</th>
+                                    <th>Total Items</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Filled dynamically via AJAX -->
+                            </tbody>
+                        </table>
                     </div>
                 </section>
 
                 <section class="d-flex flex-wrap gap-4">
-                    <section class="report-table flex-grow-1">
+                    <!-- <section class="report-table flex-grow-1">
                         <h5>Top Selling Products</h5>
                         <table class="table">
                             <thead>
@@ -297,58 +329,23 @@ if ($result && $result->num_rows > 0) {
                                 </tr>
                             </tbody>
                         </table>
-                    </section>
-                    <section class="report-table flex-grow-1">
-                        <h5>Recent Transactions</h5>
-                        <table class="table">
+                    </section> -->
+                    <!-- <section class="report-table flex-grow-1">
+                        <h5>Sales Details</h5>
+                        <table class="table" id="recentSalesTable">
                             <thead>
                                 <tr>
-                                    <th>Transaction ID</th>
-                                    <th>Shop</th>
-                                    <th>Customer</th>
-                                    <th>Amount</th>
+                                    <th>Item Name</th>
+                                    <th>Item Code</th>
                                     <th>Date</th>
+                                    <th>Total Items</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>TRX78901</td>
-                                    <td>Shop A</td>
-                                    <td>Alice Johnson</td>
-                                    <td>Rs. 120.50</td>
-                                    <td>2024-07-28</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78902</td>
-                                    <td>Shop B</td>
-                                    <td>Bob Williams</td>
-                                    <td>Rs. 75.00</td>
-                                    <td>2024-07-27</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78903</td>
-                                    <td>Shop A</td>
-                                    <td>Charlie Brown</td>
-                                    <td>Rs. 250.99</td>
-                                    <td>2024-07-27</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78904</td>
-                                    <td>Shop C</td>
-                                    <td>Diana Miller</td>
-                                    <td>Rs. 45.75</td>
-                                    <td>2024-07-26</td>
-                                </tr>
-                                <tr>
-                                    <td>TRX78905</td>
-                                    <td>Shop B</td>
-                                    <td>Eve Davis</td>
-                                    <td>Rs. 180.20</td>
-                                    <td>2024-07-26</td>
-                                </tr>
                             </tbody>
                         </table>
-                    </section>
+                    </section> -->
+
                 </section>
 
 
@@ -375,7 +372,105 @@ if ($result && $result->num_rows > 0) {
     <script src="js/app.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
+        function loadRecentSales() {
+            $.ajax({
+                url: 'api/getRecentSales.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function (sales) {
+                    let tbody = '';
+                    if (sales.length === 0) {
+                        tbody = `<tr><td colspan="4" class="text-center text-danger">No sales found</td></tr>`;
+                    } else {
+                        sales.forEach(sale => {
+                            tbody += `
+                        <tr>
+                            <td>${sale.id}</td>
+
+                            <td>${sale.item_name}</td>
+                            <td>${sale.item_code}</td>
+                            <td>${sale.total_items}</td>
+                            <td>${new Date(sale.created_at).toLocaleDateString('en-GB')}</td>
+
+                        </tr>
+                    `;
+                        });
+                    }
+                    $('#recentSalesTable tbody').html(tbody);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            loadRecentSales();
+        });
+
+    </script>
+
+    <script>
+        const salesCtx = document.getElementById('salesLineChart').getContext('2d');
+
+        fetch('api/monthly_sales.php')
+            .then(res => res.json())
+            .then(monthlyData => {
+                const salesLineChart = new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Sales',
+                            data: monthlyData,
+                            borderColor: '#0d9488',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            tension: 0.25,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { font: { size: 12 } }
+                            },
+                            x: {
+                                ticks: { font: { size: 12 } }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(err => console.error('Error fetching monthly sales:', err));
+
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: 'api/summary.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    $('#totalProducts').text(data.total_products);
+                    $('#totalSales').text(data.total_sales);
+                    $('#totalRevenue').text('Rs. ' + Number(data.total_revenue).toLocaleString());
+                },
+                error: function (err) {
+                    console.error('Error fetching summary:', err);
+                }
+            });
+        });
+    </script>
+
+
+    <!-- <script>
         const salesCtx = document.getElementById('salesLineChart').getContext('2d');
         const salesLineChart = new Chart(salesCtx, {
             type: 'line',
@@ -443,7 +538,7 @@ if ($result && $result->num_rows > 0) {
                 }
             }
         });
-    </script>
+    </script> -->
 
 
 </body>
