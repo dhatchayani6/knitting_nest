@@ -8,8 +8,8 @@ include('../includes/config.php'); // adjust path if needed
 $summarySql = "
     SELECT 
         COUNT(s.id) AS total_sales,
-        SUM(s.item_price * s.item_quantity) AS total_revenue,
-        ROUND(AVG(s.item_price * s.item_quantity)) AS avg_order
+        SUM(s.item_price) AS total_revenue,
+        ROUND(AVG(s.item_price)) AS avg_order
     FROM sales s
 ";
 $summaryResult = $conn->query($summarySql);
@@ -20,42 +20,57 @@ $summary = $summaryResult->fetch_assoc();
 // ============================
 $topProducts = [];
 $topSql = "
-    SELECT s.item_name, s.item_code,
-           SUM(CAST(s.item_quantity AS UNSIGNED)) AS units_sold,
-           SUM(CAST(s.item_price AS UNSIGNED) * CAST(s.item_quantity AS UNSIGNED)) AS revenue
+    SELECT 
+        s.item_name, 
+        s.item_code,
+        sh.stores_name AS store_name,
+        SUM(CAST(s.total_items AS UNSIGNED)) AS units_sold,
+        SUM(CAST(s.item_price AS UNSIGNED)) AS revenue
     FROM sales s
-    GROUP BY s.item_name, s.item_code
+    LEFT JOIN shops sh ON s.store_id = sh.id
+    GROUP BY s.item_name, s.item_code, sh.stores_name
     ORDER BY units_sold DESC
-    LIMIT 5
 ";
-
 $topResult = $conn->query($topSql);
 while ($row = $topResult->fetch_assoc()) {
     $topProducts[] = $row;
 }
 
+
+
+
 // ============================
 // 3. Recent Transactions
 // ============================
-$recentTransactions = [];
+$recentTransfers = [];
 $recentSql = "
     SELECT 
-        s.id AS trx_id,
-        st.stores_name,
-        s.item_name,
-        (CAST(s.item_price AS UNSIGNED) * CAST(s.item_quantity AS UNSIGNED)) AS amount,
-        DATE_FORMAT(s.created_at, '%d-%m-%Y') AS sale_date
-    FROM sales s
-    LEFT JOIN shops st ON s.store_id = st.id
-    ORDER BY s.created_at DESC
-    LIMIT 5
+        t.id,
+        t.item_id,
+        t.item_code,
+        sh_from.stores_name AS from_store,
+        sh_to.stores_name AS to_store,
+        t.available_quantity,
+        t.shared_quantity,
+        t.transfer_status,
+        t.imagePath,
+        DATE_FORMAT(t.created_at, '%d-%m-%Y') AS transfer_date
+    FROM item_transfers t
+    LEFT JOIN shops sh_from ON t.from_store_id = sh_from.id
+    LEFT JOIN shops sh_to ON t.to_store_id = sh_to.id
+    ORDER BY t.created_at ASC
 ";
-
 
 $recentResult = $conn->query($recentSql);
 while ($row = $recentResult->fetch_assoc()) {
-    $recentTransactions[] = $row;
+    $recentTransfers[] = $row;
 }
+
+
+
+
+
+
 
 // ============================
 // 4. Sales Trends per Month
@@ -64,7 +79,7 @@ $labels = [];
 $salesData = [];
 $monthSql = "
     SELECT DATE_FORMAT(s.created_at, '%b %Y') AS month,
-           SUM(s.item_price * s.item_quantity) AS total
+           SUM(s.item_price) AS total
     FROM sales s
     GROUP BY YEAR(s.created_at), MONTH(s.created_at)
     ORDER BY s.created_at ASC
@@ -82,7 +97,7 @@ $categories = [];
 $categoryData = [];
 $catSql = "
     SELECT i.sub_category,
-           SUM(s.item_price * s.item_quantity) AS total
+           SUM(s.item_price) AS total
     FROM items i
     LEFT JOIN sales s ON i.id = s.item_id
     GROUP BY i.sub_category
@@ -92,6 +107,7 @@ while ($row = $catResult->fetch_assoc()) {
     $categories[] = $row['sub_category'] ?? 'Others';
     $categoryData[] = (int) $row['total'];
 }
+
 ?>
 
 
@@ -346,6 +362,7 @@ while ($row = $catResult->fetch_assoc()) {
                                 <?php foreach ($topProducts as $prod): ?>
                                     <tr>
                                         <td><?= htmlspecialchars($prod['item_name']) ?></td>
+                                        <td><?= htmlspecialchars($prod['store_name']) ?></td>
                                         <td><?= (int) $prod['units_sold'] ?></td>
                                         <td>Rs. <?= number_format($prod['revenue']) ?></td>
                                     </tr>
@@ -365,26 +382,31 @@ while ($row = $catResult->fetch_assoc()) {
                         <thead>
                             <tr>
                                 <th>Transaction ID</th>
-                                <th>Shop</th>
-                                <th>Item</th>
-                                <th>Amount</th>
+                                <th>From Store</th>
+                                <th>To Store</th>
+                                <th>Item Code</th>
+                                <th>Available Quantity</th>
+                                <th>Shared Quantity</th>
+                                <!-- <th>Status</th> -->
                                 <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (!empty($recentTransactions)): ?>
-                                <?php foreach ($recentTransactions as $trx): ?>
+                            <?php if (!empty($recentTransfers)): ?>
+                                <?php foreach ($recentTransfers as $trx): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($trx['trx_id']) ?></td>
-                                        <td><?= htmlspecialchars($trx['stores_name']) ?></td>
-                                        <td><?= htmlspecialchars($trx['item_name']) ?></td>
-                                        <td>Rs. <?= htmlspecialchars($trx['amount']) ?></td>
-                                        <td><?= htmlspecialchars($trx['sale_date']) ?></td>
+                                        <td><?= htmlspecialchars($trx['id']) ?></td>
+                                        <td><?= htmlspecialchars($trx['from_store']) ?></td>
+                                        <td><?= htmlspecialchars($trx['to_store']) ?></td>
+                                        <td><?= htmlspecialchars($trx['item_code']) ?></td>
+                                        <td><?= htmlspecialchars($trx['available_quantity']) ?></td>
+                                        <td><?= htmlspecialchars($trx['shared_quantity']) ?></td>
+                                        <td><?= htmlspecialchars($trx['transfer_date']) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="5" class="text-center">No recent transactions found.</td>
+                                    <td colspan="8" class="text-center">No recent transactions found.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>

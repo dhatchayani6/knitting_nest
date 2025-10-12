@@ -2,12 +2,12 @@
 header('Content-Type: application/json');
 include('../../includes/config.php');
 
-// 1. Fetch total revenue per month (no multiplication needed)
+// 1. Fetch total revenue per month (all shops, no multiplication needed)
 $sql = "
     SELECT
         DATE_FORMAT(created_at, '%Y-%m') AS ym,
         DATE_FORMAT(created_at, '%b %Y') AS label,
-        SUM(COALESCE(item_price,0)) AS revenue
+        SUM(CAST(item_price AS DECIMAL(10,2))) AS revenue
     FROM sales
     WHERE created_at >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
     GROUP BY ym
@@ -43,3 +43,4 @@ echo json_encode([
     'labels' => $labels,
     'data' => $data
 ]);
+?>
