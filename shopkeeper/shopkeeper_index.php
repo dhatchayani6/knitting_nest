@@ -110,29 +110,41 @@ if ($shopid) {
 
     // 6) Top products by total_items (units sold) — using sales table
     $stmt = $conn->prepare("
-    SELECT 
-        s.item_name AS item_name,
-        s.item_code AS item_code,
-        COALESCE(i.sub_category,'') AS category,
-        SUM(CAST(s.total_items AS UNSIGNED)) AS units_sold,
-        SUM(
-            CAST(REPLACE(REPLACE(s.item_price, '$', ''), ',', '') AS DECIMAL(10,2)) *
-            CAST(s.total_items AS UNSIGNED)
-        ) AS revenue,
+     SELECT 
+        ss.item_name,
+        ss.item_code,
+        COALESCE(i.sub_category, '') AS category,
+        ss.units_sold,
+        ss.revenue,
         CASE
             WHEN SUM(CAST(s.remaining_quantity AS SIGNED)) = 0 THEN 'Out of Stock'
-            WHEN i.stock_level IS NOT NULL AND SUM(CAST(s.remaining_quantity AS SIGNED)) <= CAST(i.stock_level AS SIGNED) THEN 'Low Stock'
+            WHEN i.stock_level IS NOT NULL 
+                 AND SUM(CAST(s.remaining_quantity AS SIGNED)) <= CAST(i.stock_level AS SIGNED)
+            THEN 'Low Stock'
             ELSE 'In Stock'
         END AS status
-    FROM sales s
-    LEFT JOIN items i ON s.item_code = i.item_code
-    WHERE s.store_id = ?
-    GROUP BY s.item_code
-    ORDER BY units_sold DESC
+    FROM (
+        SELECT 
+            s.item_code,
+            s.item_name,
+            s.store_id,
+            SUM(CAST(s.total_items AS UNSIGNED)) AS units_sold,
+            SUM(
+                CAST(REPLACE(REPLACE(s.item_price, '$', ''), ',', '') AS DECIMAL(10,2))
+            ) AS revenue
+        FROM sales s
+        WHERE s.store_id = ?
+        GROUP BY s.item_code
+    ) AS ss
+    LEFT JOIN items i ON ss.item_code = i.item_code
+    LEFT JOIN sales s ON s.item_code = ss.item_code AND s.store_id = ss.store_id
+    WHERE ss.store_id = ?
+    GROUP BY ss.item_code
+    ORDER BY ss.units_sold DESC
     LIMIT 10
 ");
 
-    $stmt->bind_param("i", $shopid);
+   $stmt->bind_param("ii", $shopid, $shopid);
     $stmt->execute();
     $res = $stmt->get_result();
     while ($r = $res->fetch_assoc()) {
