@@ -1,161 +1,118 @@
 <?php
 include('../includes/config.php');
 
-$salesAgg = [];
-
-// Aggregated sales per item & store
-$salesAggQuery = "
-    SELECT 
-        s.item_code,
-        s.store_id,
-        SUM(CAST(s.total_items AS SIGNED)) AS units_sold,
-        SUM(CAST(s.item_price AS SIGNED)) AS revenue,
-        SUM(CAST(s.remaining_quantity AS SIGNED)) AS remaining_qty
-    FROM sales s
-    GROUP BY s.item_code, s.store_id
-";
-
-$stmt = $conn->prepare($salesAggQuery);
-$stmt->execute();
-$salesAggRes = $stmt->get_result();
-
-while ($row = $salesAggRes->fetch_assoc()) {
-    // Cast numeric fields properly
-    $row['units_sold'] = (int) $row['units_sold'];
-    $row['revenue'] = (int) $row['revenue'];
-    $row['remaining_qty'] = (int) $row['remaining_qty'];
-
-    $salesAgg[] = $row;
+// --- 1. Total Products ---
+$totalProducts = 0;
+$totalProductsQuery = "SELECT COUNT(*) AS total FROM items";
+if ($result = $conn->query($totalProductsQuery)) {
+    $row = $result->fetch_assoc();
+    $totalProducts = $row['total'] ?? 0;
+    $result->free();
 }
 
-
-// $salesAgg now contains aggregated sales per item & store
-
-
-// Build an in-memory map of sales_agg for quick joins (optional, but keeps later queries simpler)
-$salesAgg = [];
-while ($row = $salesAggRes->fetch_assoc()) {
-    $key = $row['item_code'] . '::' . $row['store_id'];
-    $salesAgg[$key] = [
-        'units_sold' => (int) $row['units_sold'],
-        'revenue' => (float) $row['revenue'],
-        'remaining_qty' => (int) $row['remaining_qty'],
-    ];
-}
-$stmt->close();
-
-// 2) Build a single aggregated inventory view (item + store) using SQL (we'll compute counts from DB directly)
-$inventoryCountsQuery = "
-    WITH sales_agg AS (
-        SELECT 
-            s.item_code,
-            s.store_id,
-            SUM(CAST(s.total_items AS SIGNED))        AS units_sold,
-            SUM(CAST(s.total_items AS SIGNED) * CAST(s.item_price AS DECIMAL(12,2))) AS revenue,
-            SUM(CAST(s.remaining_quantity AS SIGNED)) AS remaining_qty
-        FROM sales s
-        GROUP BY s.item_code, s.store_id
-    )
-    SELECT 
-        COUNT(*) AS totalProducts, -- total items across stores
-        SUM(CASE WHEN i.item_quantity = 0 THEN 1 ELSE 0 END) AS outOfStock,
-        SUM(CASE 
-                WHEN i.item_quantity > 0 
-                     AND i.item_quantity < i.stock_level   -- below 20% of ideal stock
-                THEN 1 
-                ELSE 0 
-            END) AS lowStock
-    FROM items i
-    LEFT JOIN shops sh ON i.store_id = sh.id
-    LEFT JOIN sales_agg sa ON i.item_code = sa.item_code AND i.store_id = sa.store_id
+// --- 2. In Stock (quantity >= stock_level) ---
+$inStock = 0;
+$inStockQuery = "
+    SELECT COUNT(*) AS inStock 
+    FROM items 
+    WHERE COALESCE(CAST(item_quantity AS SIGNED), 0) >= COALESCE(CAST(stock_level AS SIGNED), 0)
 ";
+if ($result = $conn->query($inStockQuery)) {
+    $row = $result->fetch_assoc();
+    $inStock = $row['inStock'] ?? 0;
+    $result->free();
+}
 
-$stmt = $conn->prepare($inventoryCountsQuery);
-$stmt->execute();
-$counts = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-// convert to ints and compute inStock
-$totalProducts = (int) ($counts['totalProducts'] ?? 0);
-$outOfStock = (int) ($counts['outOfStock'] ?? 0);
-$lowStock = (int) ($counts['lowStock'] ?? 0);
-$inStock = max(0, $totalProducts - $lowStock - $outOfStock);
-
-// 3) Low stock items details (limit 10) — based on aggregated remaining_qty per item-store
-$lowStockItems = [];
-
+// --- 3. Low Stock (quantity < stock_level and > 0) ---
+$lowStock = 0;
 $lowStockQuery = "
+    SELECT COUNT(*) AS lowStock 
+    FROM items 
+    WHERE COALESCE(CAST(item_quantity AS SIGNED), 0) < COALESCE(CAST(stock_level AS SIGNED), 0)
+      AND COALESCE(CAST(item_quantity AS SIGNED), 0) > 0
+";
+if ($result = $conn->query($lowStockQuery)) {
+    $row = $result->fetch_assoc();
+    $lowStock = $row['lowStock'] ?? 0;
+    $result->free();
+}
+
+// --- 4. Out of Stock (quantity = 0) ---
+$outOfStock = 0;
+$outOfStockQuery = "
+    SELECT COUNT(*) AS outOfStock 
+    FROM items 
+    WHERE COALESCE(CAST(item_quantity AS SIGNED), 0) = 0
+";
+if ($result = $conn->query($outOfStockQuery)) {
+    $row = $result->fetch_assoc();
+    $outOfStock = $row['outOfStock'] ?? 0;
+    $result->free();
+}
+
+// --- 5. Low Stock Items Details (Top 10) ---
+$lowStockItems = [];
+$lowStockItemsQuery = "
     SELECT 
-        i.item_name,
-        i.item_code,
-        (CAST(i.item_quantity AS SIGNED) - COALESCE(SUM(CAST(s.total_items AS SIGNED)),0)) AS remaining_quantity,
-        COALESCE(i.stock_level, 0) AS stock_level,
-        COALESCE(i.items_image, '') AS items_image,
-        COALESCE(i.sub_category, '') AS sub_category,
-        COALESCE(i.vendor_name, '') AS vendor_name,
-        COALESCE(sh.stores_name, '') AS store_name
-    FROM items i
-    LEFT JOIN shops sh ON i.store_id = sh.id
-    LEFT JOIN sales s ON i.item_code = s.item_code AND i.store_id = s.store_id
-    GROUP BY i.item_name, i.item_code, i.item_quantity, i.stock_level, i.items_image, i.sub_category, i.vendor_name, sh.stores_name
-    HAVING remaining_quantity > 0 AND remaining_quantity < stock_level
-    ORDER BY remaining_quantity ASC
+        item_code, 
+        item_name, 
+        item_quantity,
+        COALESCE(stock_level, 0) AS stock_level, 
+        items_image, 
+        vendor_name
+    FROM items
+    WHERE COALESCE(CAST(item_quantity AS SIGNED), 0) < COALESCE(CAST(stock_level AS SIGNED), 0)
+    ORDER BY CAST(item_quantity AS SIGNED) ASC
     LIMIT 10
 ";
-
-$stmt = $conn->prepare($lowStockQuery);
-$stmt->execute();
-$res = $stmt->get_result();
-
-while ($r = $res->fetch_assoc()) {
-    $r['remaining_quantity'] = (int) $r['remaining_quantity'];
-    $r['stock_level'] = (int) $r['stock_level'];
-    $lowStockItems[] = $r;
+if ($result = $conn->query($lowStockItemsQuery)) {
+    while ($row = $result->fetch_assoc()) {
+        $lowStockItems[] = $row;
+    }
+    $result->free();
 }
 
-
-// 4) Top products — sold items (per item-store), top by units_sold
+// --- 6. Top Products (Store-wise Best Sellers) ---
 $topProducts = [];
-
-
-
-$topProducts = [];
-
 $topProductsQuery = "
     SELECT 
-        i.item_name,
-        i.item_code,
-        COALESCE(i.sub_category,'') AS category,
-        COALESCE(SUM(CAST(s.total_items AS SIGNED)), 0) AS units_sold,   -- total_items summed as units_sold
-        COALESCE(SUM(CAST(s.item_price AS DECIMAL(12,2))), 0) AS revenue, -- total revenue
-        COALESCE(TRIM(sh.stores_name), '') AS store_name,
-        CASE
-            WHEN (i.item_quantity - COALESCE(SUM(s.total_items),0)) <= 0 THEN 'Out of Stock'
-            WHEN i.stock_level IS NOT NULL AND (i.item_quantity - COALESCE(SUM(s.total_items),0)) < i.stock_level THEN 'Low Stock'
-            ELSE 'In Stock'
-        END AS status
+    sh.stores_name,
+    i.item_name,
+    i.item_code,
+    i.sub_category,
+    SUM(CAST(s.total_items AS SIGNED)) AS units_sold,
+    SUM(CAST(s.item_price AS DECIMAL(12,2))) AS revenue_count,
+    CASE
+        WHEN COALESCE(CAST(i.item_quantity AS SIGNED), 0) = 0 THEN 'Out of Stock'
+        WHEN COALESCE(CAST(i.item_quantity AS SIGNED), 0) < COALESCE(CAST(i.stock_level AS SIGNED), 0) THEN 'Low Stock'
+        ELSE 'In Stock'
+    END AS status
+FROM items i
+INNER JOIN sales s ON s.item_id = i.id
+INNER JOIN shops sh ON s.store_id = sh.id
+GROUP BY 
+    sh.stores_name,
+    i.item_code,
+    i.item_name,
+    i.sub_category
+ORDER BY 
+    CASE
+        WHEN COALESCE(CAST(i.item_quantity AS SIGNED), 0) = 0 THEN 1
+        WHEN COALESCE(CAST(i.item_quantity AS SIGNED), 0) < COALESCE(CAST(i.stock_level AS SIGNED), 0) THEN 2
+        ELSE 3
+    END,
+    units_sold DESC
+LIMIT 10;
 
-    FROM items i
-    LEFT JOIN shops sh ON i.store_id = sh.id
-    LEFT JOIN sales s ON i.item_code = s.item_code AND i.store_id = s.store_id
-    GROUP BY i.item_name, i.item_code, i.sub_category, i.item_quantity, i.stock_level, sh.stores_name
-    HAVING units_sold > 0
-    ORDER BY units_sold DESC, revenue DESC
-    LIMIT 10
+
 ";
-
-$stmt = $conn->prepare($topProductsQuery);
-$stmt->execute();
-$res = $stmt->get_result();
-
-$topProducts = [];
-while ($r = $res->fetch_assoc()) {
-    $r['units_sold'] = (int) $r['units_sold'];
-    $r['revenue'] = is_numeric($r['revenue']) ? (float) $r['revenue'] : 0;
-    $topProducts[] = $r;
+if ($result = $conn->query($topProductsQuery)) {
+    while ($row = $result->fetch_assoc()) {
+        $topProducts[] = $row;
+    }
+    $result->free();
 }
 
-$stmt->close();
 ?>
 
 <!doctype html>
@@ -487,24 +444,28 @@ $stmt->close();
                                         <div class="card mb-0 p-3 shadow-sm product-card">
                                             <div class="d-flex align-items-center">
                                                 <?php $img = $it['items_image'] ?: 'default.png'; ?>
-                                                <img src="../<?php echo htmlspecialchars($img); ?>"
-                                                    alt="<?php echo htmlspecialchars($it['item_name']); ?>" class="rounded me-3"
+                                                <img src="../<?= htmlspecialchars($img) ?>"
+                                                    alt="<?= htmlspecialchars($it['item_name']) ?>" class="rounded me-3"
                                                     width="48" height="48">
                                                 <div class="flex-grow-1">
-                                                    <h6 class="mb-1"><?php echo htmlspecialchars($it['item_name']); ?></h6>
+                                                    <h6 class="mb-1"><?= htmlspecialchars($it['item_name']) ?></h6>
                                                     <p class="mb-1 text-muted" style="font-size:.9rem;">Code:
-                                                        <?php echo htmlspecialchars($it['item_code']); ?>
+                                                        <?= htmlspecialchars($it['item_code']) ?>
                                                     </p>
-                                                    <p class="mb-1" style="font-size:.9rem;">Stock: <span
-                                                            class="text-danger"><?php echo htmlspecialchars($it['remaining_quantity']); ?></span>
-                                                        (Min: <?php echo htmlspecialchars($it['stock_level']); ?>)</p>
-                                                    <?php if ($it['vendor_name']): ?><small class="text-muted">Vendor:
-                                                            <?php echo htmlspecialchars($it['vendor_name']); ?></small><?php endif; ?>
+                                                    <p class="mb-1" style="font-size:.9rem;">
+                                                        Stock: <span
+                                                            class="text-danger"><?= htmlspecialchars($it['item_quantity']) ?></span>
+                                                        (Min: <?= htmlspecialchars($it['stock_level']) ?>)
+                                                    </p>
+                                                    <?php if ($it['vendor_name']): ?>
+                                                        <small class="text-muted">Vendor:
+                                                            <?= htmlspecialchars($it['vendor_name']) ?></small>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <div class="mt-2 d-flex flex-column gap-2">
-                                                    <a href="item-details.php?code=<?php echo urlencode($it['item_code']); ?>"
+                                                    <a href="item-details.php?code=<?= urlencode($it['item_code']) ?>"
                                                         class="btn btn-secondary btn-outline-secondary btn-sm">View Details</a>
-                                                    <a href="replenish.php?code=<?php echo urlencode($it['item_code']); ?>"
+                                                    <a href="replenish.php?code=<?= urlencode($it['item_code']) ?>"
                                                         class="btn btn-primary btn-sm">Replenish</a>
                                                 </div>
                                             </div>
@@ -512,7 +473,6 @@ $stmt->close();
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <h6><i class="bi bi-bell fs-6 text-primary me-2"></i>Low Stock Notifications</h6>
-
                                     <p class="text-muted">No low-stock products.</p>
                                 <?php endif; ?>
                             </div>
@@ -535,32 +495,28 @@ $stmt->close();
                                     <th>Category</th>
                                     <th>Units Sold</th>
                                     <th>Revenue</th>
-                                    <th>Status</th>
+                                    <!-- <th>Status</th> -->
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (!empty($topProducts)): ?>
                                     <?php foreach ($topProducts as $p): ?>
                                         <tr>
-                                            <td><?php echo htmlspecialchars($p['store_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['item_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['category']); ?></td>
-                                            <td><?php echo number_format($p['units_sold']); ?></td>
-                                            <td>Rs.<?php echo number_format($p['revenue'], 2); ?></td>
-                                            <td>
-                                                <?php if ($p['status'] === 'In Stock'): ?>
-                                                    <span class="status-badge status-in-stock">In Stock</span>
-                                                <?php elseif ($p['status'] === 'Low Stock'): ?>
-                                                    <span class="status-badge status-low-stock">Low Stock</span>
-                                                <?php else: ?>
-                                                    <span class="status-badge status-out-stock">Out of Stock</span>
-                                                <?php endif; ?>
-                                            </td>
+                                            <td><?= htmlspecialchars($p['stores_name']) ?></td>
+                                            <td><?= htmlspecialchars($p['item_name']) ?></td>
+                                            <td><?= htmlspecialchars($p['sub_category'] ?? 'N/A') ?></td>
+                                            <td><?= number_format($p['units_sold']) ?></td>
+                                            <td><?= number_format($p['revenue_count']) ?></td>
+                                            <!-- <td>
+                                                <span
+                                                    class="status-badge <?= strtolower(str_replace(' ', '-', $p['status'])) ?>"><?= $p['status'] ?></span>
+
+                                            </td> -->
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">No product data available</td>
+                                        <td colspan="6" class="text-center">No product data available</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>

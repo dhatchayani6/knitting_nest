@@ -8,19 +8,16 @@ if (!$store_id) {
     exit;
 }
 
-// ✅ FIX: Multiply price × total_items
+// Use item_price directly since it's already total price
 $sql = "
     SELECT
       DATE_FORMAT(created_at, '%Y-%m') AS ym,
       DATE_FORMAT(created_at, '%b %Y') AS label,
-     SUM(
-  CAST(REPLACE(REPLACE(COALESCE(item_price,'0'), '$', ''), ',', '') AS DECIMAL(14,2))
-  * CAST(COALESCE(total_items,'0') AS UNSIGNED)
-) AS revenue
-
+      SUM(
+        CAST(REPLACE(REPLACE(COALESCE(item_price,'0'), '$', ''), ',', '') AS DECIMAL(14,2))
+      ) AS revenue
     FROM sales
     WHERE store_id = ?
-      AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
     GROUP BY ym
     ORDER BY ym ASC
 ";
@@ -33,7 +30,6 @@ $res = $stmt->get_result();
 $labels = [];
 $data = [];
 
-// Collect results into associative array by year-month
 $map = [];
 while ($r = $res->fetch_assoc()) {
     $map[$r['ym']] = [
@@ -58,5 +54,5 @@ foreach ($months as $ym => $label) {
     $data[] = isset($map[$ym]) ? round($map[$ym]['revenue'], 2) : 0;
 }
 
-// ✅ Final Output
+// Final output
 echo json_encode(['labels' => $labels, 'data' => $data]);
