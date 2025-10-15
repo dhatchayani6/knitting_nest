@@ -1,135 +1,184 @@
 <?php
-include('../includes/config.php'); // adjust path if needed
+include('../includes/config.php');
 
-// Prepare default values
-$totalProducts = 0;
-$inStock = 0;
-$lowStock = 0;
-$outOfStock = 0;
-$lowStockItems = [];
-$topProducts = [];
+$salesAgg = [];
 
-// 1) Total products (count all items)
-$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM items");
-$stmt->execute();
-$totalProducts = (int) ($stmt->get_result()->fetch_assoc()['total'] ?? 0);
-$stmt->close();
-
-// 2) Out of stock (sales.remaining_quantity = 0)
-$stmt = $conn->prepare("SELECT COUNT(*) AS outcount FROM sales WHERE CAST(remaining_quantity AS SIGNED) = 0");
-$stmt->execute();
-$outOfStock = (int) ($stmt->get_result()->fetch_assoc()['outcount'] ?? 0);
-$stmt->close();
-
-// 3) Low stock (remaining_quantity <= items.stock_level AND > 0)
-$stmt = $conn->prepare("
-    SELECT COUNT(*) AS lowcount
+// Aggregated sales per item & store
+$salesAggQuery = "
+    SELECT 
+        s.item_code,
+        s.store_id,
+        SUM(CAST(s.total_items AS SIGNED)) AS units_sold,
+        SUM(CAST(s.item_price AS SIGNED)) AS revenue,
+        SUM(CAST(s.remaining_quantity AS SIGNED)) AS remaining_qty
     FROM sales s
-    LEFT JOIN items i ON s.item_code = i.item_code
-    WHERE CAST(s.remaining_quantity AS SIGNED) > 0
-      AND i.stock_level IS NOT NULL
-      AND CAST(s.remaining_quantity AS SIGNED) <= CAST(i.stock_level AS SIGNED)
-");
-$stmt->execute();
-$lowStock = (int) ($stmt->get_result()->fetch_assoc()['lowcount'] ?? 0);
-$stmt->close();
+    GROUP BY s.item_code, s.store_id
+";
 
-// 4) In stock = totalProducts - lowStock - outOfStock
-$inStock = max(0, $totalProducts - $lowStock - $outOfStock);
-
-// 5) Low stock items details (limit 10)
-$stmt = $conn->prepare("
-    SELECT s.item_name,
-           s.item_code,
-           s.remaining_quantity,
-           COALESCE(i.stock_level, '') AS stock_level,
-           COALESCE(i.items_image, '') AS items_image,
-           COALESCE(i.sub_category, '') AS sub_category,
-           COALESCE(i.vendor_name, '') AS vendor_name
-    FROM sales s
-    LEFT JOIN items i ON s.item_code = i.item_code
-    WHERE CAST(s.remaining_quantity AS SIGNED) > 0
-      AND i.stock_level IS NOT NULL
-      AND CAST(s.remaining_quantity AS SIGNED) <= CAST(i.stock_level AS SIGNED)
-    ORDER BY CAST(s.remaining_quantity AS SIGNED) ASC
-    LIMIT 10
-");
+$stmt = $conn->prepare($salesAggQuery);
 $stmt->execute();
-$res = $stmt->get_result();
-while ($r = $res->fetch_assoc()) {
-    $lowStockItems[] = $r;
+$salesAggRes = $stmt->get_result();
+
+while ($row = $salesAggRes->fetch_assoc()) {
+    // Cast numeric fields properly
+    $row['units_sold'] = (int) $row['units_sold'];
+    $row['revenue'] = (int) $row['revenue'];
+    $row['remaining_qty'] = (int) $row['remaining_qty'];
+
+    $salesAgg[] = $row;
+}
+
+
+// $salesAgg now contains aggregated sales per item & store
+
+
+// Build an in-memory map of sales_agg for quick joins (optional, but keeps later queries simpler)
+$salesAgg = [];
+while ($row = $salesAggRes->fetch_assoc()) {
+    $key = $row['item_code'] . '::' . $row['store_id'];
+    $salesAgg[$key] = [
+        'units_sold' => (int) $row['units_sold'],
+        'revenue' => (float) $row['revenue'],
+        'remaining_qty' => (int) $row['remaining_qty'],
+    ];
 }
 $stmt->close();
 
-// 6) Top products — only sold items
-$stmt = $conn->prepare("
+// 2) Build a single aggregated inventory view (item + store) using SQL (we'll compute counts from DB directly)
+$inventoryCountsQuery = "
+    WITH sales_agg AS (
+        SELECT 
+            s.item_code,
+            s.store_id,
+            SUM(CAST(s.total_items AS SIGNED))        AS units_sold,
+            SUM(CAST(s.total_items AS SIGNED) * CAST(s.item_price AS DECIMAL(12,2))) AS revenue,
+            SUM(CAST(s.remaining_quantity AS SIGNED)) AS remaining_qty
+        FROM sales s
+        GROUP BY s.item_code, s.store_id
+    )
+    SELECT 
+        COUNT(*) AS totalProducts, -- total items across stores
+        SUM(CASE WHEN i.item_quantity = 0 THEN 1 ELSE 0 END) AS outOfStock,
+        SUM(CASE 
+                WHEN i.item_quantity > 0 
+                     AND i.item_quantity < i.stock_level   -- below 20% of ideal stock
+                THEN 1 
+                ELSE 0 
+            END) AS lowStock
+    FROM items i
+    LEFT JOIN shops sh ON i.store_id = sh.id
+    LEFT JOIN sales_agg sa ON i.item_code = sa.item_code AND i.store_id = sa.store_id
+";
+
+$stmt = $conn->prepare($inventoryCountsQuery);
+$stmt->execute();
+$counts = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+// convert to ints and compute inStock
+$totalProducts = (int) ($counts['totalProducts'] ?? 0);
+$outOfStock = (int) ($counts['outOfStock'] ?? 0);
+$lowStock = (int) ($counts['lowStock'] ?? 0);
+$inStock = max(0, $totalProducts - $lowStock - $outOfStock);
+
+// 3) Low stock items details (limit 10) — based on aggregated remaining_qty per item-store
+$lowStockItems = [];
+
+$lowStockQuery = "
+    SELECT 
+        i.item_name,
+        i.item_code,
+        (CAST(i.item_quantity AS SIGNED) - COALESCE(SUM(CAST(s.total_items AS SIGNED)),0)) AS remaining_quantity,
+        COALESCE(i.stock_level, 0) AS stock_level,
+        COALESCE(i.items_image, '') AS items_image,
+        COALESCE(i.sub_category, '') AS sub_category,
+        COALESCE(i.vendor_name, '') AS vendor_name,
+        COALESCE(sh.stores_name, '') AS store_name
+    FROM items i
+    LEFT JOIN shops sh ON i.store_id = sh.id
+    LEFT JOIN sales s ON i.item_code = s.item_code AND i.store_id = s.store_id
+    GROUP BY i.item_name, i.item_code, i.item_quantity, i.stock_level, i.items_image, i.sub_category, i.vendor_name, sh.stores_name
+    HAVING remaining_quantity > 0 AND remaining_quantity < stock_level
+    ORDER BY remaining_quantity ASC
+    LIMIT 10
+";
+
+$stmt = $conn->prepare($lowStockQuery);
+$stmt->execute();
+$res = $stmt->get_result();
+
+while ($r = $res->fetch_assoc()) {
+    $r['remaining_quantity'] = (int) $r['remaining_quantity'];
+    $r['stock_level'] = (int) $r['stock_level'];
+    $lowStockItems[] = $r;
+}
+
+
+// 4) Top products — sold items (per item-store), top by units_sold
+$topProducts = [];
+
+
+
+$topProducts = [];
+
+$topProductsQuery = "
     SELECT 
         i.item_name,
         i.item_code,
         COALESCE(i.sub_category,'') AS category,
-        COALESCE(CAST(sales_agg.units_sold AS UNSIGNED), 0) AS units_sold,
-        COALESCE(CAST(sales_agg.revenue AS UNSIGNED), 0) AS revenue,
-        COALESCE(sh.stores_name, '') AS store_name,
+        COALESCE(SUM(CAST(s.total_items AS SIGNED)), 0) AS units_sold,   -- total_items summed as units_sold
+        COALESCE(SUM(CAST(s.item_price AS DECIMAL(12,2))), 0) AS revenue, -- total revenue
+        COALESCE(TRIM(sh.stores_name), '') AS store_name,
         CASE
-            WHEN COALESCE(sales_agg.remaining_qty, i.stock_level) = 0 THEN 'Out of Stock'
-            WHEN i.stock_level IS NOT NULL AND COALESCE(sales_agg.remaining_qty, i.stock_level) <= i.stock_level THEN 'Low Stock'
+            WHEN (i.item_quantity - COALESCE(SUM(s.total_items),0)) <= 0 THEN 'Out of Stock'
+            WHEN i.stock_level IS NOT NULL AND (i.item_quantity - COALESCE(SUM(s.total_items),0)) < i.stock_level THEN 'Low Stock'
             ELSE 'In Stock'
         END AS status
+
     FROM items i
-    LEFT JOIN (
-        SELECT item_code, store_id,
-               SUM(total_items) AS units_sold,
-               SUM(item_price) AS revenue,
-               SUM(remaining_quantity) AS remaining_qty
-        FROM sales
-        GROUP BY item_code, store_id
-        HAVING SUM(total_items) > 0
-    ) sales_agg 
-        ON i.item_code = sales_agg.item_code AND i.store_id = sales_agg.store_id
     LEFT JOIN shops sh ON i.store_id = sh.id
-    ORDER BY units_sold DESC
+    LEFT JOIN sales s ON i.item_code = s.item_code AND i.store_id = s.store_id
+    GROUP BY i.item_name, i.item_code, i.sub_category, i.item_quantity, i.stock_level, sh.stores_name
+    HAVING units_sold > 0
+    ORDER BY units_sold DESC, revenue DESC
     LIMIT 10
-");
+";
 
-
+$stmt = $conn->prepare($topProductsQuery);
 $stmt->execute();
 $res = $stmt->get_result();
+
 $topProducts = [];
 while ($r = $res->fetch_assoc()) {
-    $topProducts[] = $r; // units_sold and revenue already integers
+    $r['units_sold'] = (int) $r['units_sold'];
+    $r['revenue'] = is_numeric($r['revenue']) ? (float) $r['revenue'] : 0;
+    $topProducts[] = $r;
 }
+
 $stmt->close();
-
-
-
-
-
-// Optional: Output JSON (for API / debugging)
-// echo json_encode([
-//     'totalProducts' => $totalProducts,
-//     'inStock' => $inStock,
-//     'lowStock' => $lowStock,
-//     'outOfStock' => $outOfStock,
-//     'lowStockItems' => $lowStockItems,
-//     'topProducts' => $topProducts
-// ]);
 ?>
 
 <!doctype html>
 <html class="no-js" lang="en">
+
 <meta http-equiv="content-type" content="text/html;charset=utf-8" />
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard </title>
+    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- CSS & icons -->
     <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <!-- Place favicon.ico in the root directory -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/vendor.css">
     <link rel="stylesheet" id="theme-style" href="css/app.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
         /* keep your custom styles (copied / slightly trimmed) */
@@ -189,6 +238,170 @@ $stmt->close();
             font-weight: 400;
         }
     </style>
+
+    <style>
+        .summary-cards {
+            background-color: #edf7fa;
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            flex: 1 1 16%;
+            min-width: 150px;
+            box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
+        }
+
+        .summary-card h6 {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        section.analytics {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
+            flex: 1 1 40%;
+            min-width: 320px;
+        }
+
+        .chart-card h5 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 15px;
+        }
+
+        .chart-legend div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .color-electronics {
+            background-color: #007b8a;
+        }
+
+        .color-apparel {
+            background-color: #009c66;
+        }
+
+        .color-homegoods {
+            background-color: #44b2af;
+        }
+
+        .color-books {
+            background-color: #caeaf6;
+        }
+
+        .color-beauty {
+            background-color: #1f2f37;
+        }
+
+        .report-table {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
+            flex: 1 1 50%;
+            min-width: 320px;
+        }
+
+        .report-table h5 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        table thead th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        table tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        table tbody td {
+            padding: 0.6rem 1rem;
+            color: #1a202c;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            padding: 0.3em 0.7em;
+            font-size: 0.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .badge-electronics {
+            background-color: #caeaf6;
+            color: #007b8a;
+        }
+
+        .badge-apparel {
+            background-color: #c7f3d6;
+            color: #009c66;
+        }
+
+        .badge-homegoods {
+            background-color: #c6e5e2;
+            color: #44b2af;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -198,6 +411,8 @@ $stmt->close();
             <?php include('includes/header.php') ?>
             <?php include('includes/sidebar.php') ?>
 
+
+            <!-- center content start -->
             <article class="content dashboard-page bg-white">
                 <section>
                     <div class="container-fluid">
@@ -272,7 +487,7 @@ $stmt->close();
                                         <div class="card mb-0 p-3 shadow-sm product-card">
                                             <div class="d-flex align-items-center">
                                                 <?php $img = $it['items_image'] ?: 'default.png'; ?>
-                                                <img src="<?php echo htmlspecialchars($img); ?>"
+                                                <img src="../<?php echo htmlspecialchars($img); ?>"
                                                     alt="<?php echo htmlspecialchars($it['item_name']); ?>" class="rounded me-3"
                                                     width="48" height="48">
                                                 <div class="flex-grow-1">
@@ -288,7 +503,7 @@ $stmt->close();
                                                 </div>
                                                 <div class="mt-2 d-flex flex-column gap-2">
                                                     <a href="item-details.php?code=<?php echo urlencode($it['item_code']); ?>"
-                                                        class="btn btn-outline-secondary btn-sm">View Details</a>
+                                                        class="btn btn-secondary btn-outline-secondary btn-sm">View Details</a>
                                                     <a href="replenish.php?code=<?php echo urlencode($it['item_code']); ?>"
                                                         class="btn btn-primary btn-sm">Replenish</a>
                                                 </div>
@@ -353,12 +568,20 @@ $stmt->close();
                     </div>
                 </section>
             </article>
+            <!-- table end -->
 
-            <!-- modals (unchanged) -->
-            <?php // ... keep your existing modals here ... ?>
+
 
         </div>
     </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="js/vendor.js"></script>
+    <script src="js/app.js"></script>
 
     <!-- JS libs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -403,6 +626,7 @@ $stmt->close();
                 .catch(err => console.error('Error loading revenue data', err));
         })();
     </script>
+
 
 </body>
 
