@@ -37,8 +37,9 @@ $lowStockCount = $row['low_stock_count'];
 
                 <!-- shared products -->
                 <li>
-                    <a href="shared_products.php"><i class="fa-solid fa-truck"></i> Shared Products</a>
+                    <a href="shared_products.php"><i class="fa-solid fa-share"></i> Shared Products</a>
                 </li>
+
 
                 <!-- received products -->
                 <li>
