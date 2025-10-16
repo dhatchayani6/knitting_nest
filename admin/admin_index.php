@@ -162,7 +162,6 @@ if ($result = $conn->query($topProductsQuery)) {
             height: 100%;
             max-height: 510px;
             overflow-y: auto;
-            padding: 20px;
             background: #fff;
         }
 
@@ -438,10 +437,14 @@ if ($result = $conn->query($topProductsQuery)) {
                         </div>
                         <!-- Left: Low stock cards -->
                         <div class="col-lg-6 mb-4 low-notification-scroll">
-                            <div class="d-flex flex-column gap-3">
+
+                            <div class="card p-3 d-flex flex-column gap-3">
+                                <h6><i class="bi bi-bell text-primary mb-3"></i>Low Stock Notification</h6>
+
                                 <?php if (!empty($lowStockItems)): ?>
                                     <?php foreach ($lowStockItems as $it): ?>
                                         <div class="card mb-0 p-3 shadow-sm product-card">
+
                                             <div class="d-flex align-items-center">
                                                 <?php $img = $it['items_image'] ?: 'default.png'; ?>
                                                 <img src="../<?= htmlspecialchars($img) ?>"
@@ -458,7 +461,7 @@ if ($result = $conn->query($topProductsQuery)) {
                                                         (Min: <?= htmlspecialchars($it['stock_level']) ?>)
                                                     </p>
                                                     <?php if ($it['vendor_name']): ?>
-                                                        <small class="text-muted">Vendor:
+                                                        <small class="text-muted">Vendor Name:
                                                             <?= htmlspecialchars($it['vendor_name']) ?></small>
                                                     <?php endif; ?>
                                                 </div>
@@ -472,7 +475,7 @@ if ($result = $conn->query($topProductsQuery)) {
                                         </div>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <h6><i class="bi bi-bell fs-6 text-primary me-2"></i>Low Stock Notifications</h6>
+                                    <!-- <h6><i class="bi bi-bell fs-6 text-primary me-2"></i>Low Stock Notifications</h6> -->
                                     <p class="text-muted">No low-stock products.</p>
                                 <?php endif; ?>
                             </div>
