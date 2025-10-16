@@ -375,50 +375,63 @@ if ($result = $conn->query($topProductsQuery)) {
 
                         <!-- Metric cards -->
                         <div class="row g-3 mb-4">
+                            <!-- Total Products -->
                             <div class="col-6 col-sm-3 col-lg-3">
-                                <div
-                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
-                                    <i class="bi bi-box-seam fs-2 text-primary me-2"></i>
-                                    <div>
-                                        <h6>Total Products</h6>
-                                        <h4 id="totalProducts"><?php echo number_format($totalProducts); ?></h4>
+                                <a href="product_details.php" class="text-decoration-none">
+                                    <div
+                                        class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                        <i class="bi bi-box-seam fs-2 text-primary me-2"></i>
+                                        <div>
+                                            <h6>Total Products</h6>
+                                            <h4 id="totalProducts"><?= number_format($totalProducts); ?></h4>
+                                        </div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
 
+                            <!-- Products in Stock -->
                             <div class="col-6 col-sm-3 col-lg-3">
-                                <div
-                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
-                                    <i class="bi bi-stack fs-2 text-success me-2"></i>
-                                    <div>
-                                        <h6>Products in Stock</h6>
-                                        <h4 id="inStock"><?php echo number_format($inStock); ?></h4>
+                                <a href="product_details.php" class="text-decoration-none">
+                                    <div
+                                        class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                        <i class="bi bi-stack fs-2 text-success me-2"></i>
+                                        <div>
+                                            <h6>Products in Stock</h6>
+                                            <h4 id="inStock"><?= number_format($inStock); ?></h4>
+                                        </div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
 
+                            <!-- Low Stock Items -->
                             <div class="col-6 col-sm-3 col-lg-3">
-                                <div
-                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
-                                    <i class="bi bi-exclamation-triangle fs-2 text-warning me-2"></i>
-                                    <div>
-                                        <h6>Low Stock Items</h6>
-                                        <h4 id="lowStock"><?php echo number_format($lowStock); ?></h4>
+                                <a href="product_details.php" class="text-decoration-none">
+                                    <div
+                                        class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                        <i class="bi bi-exclamation-triangle fs-2 text-warning me-2"></i>
+                                        <div>
+                                            <h6>Low Stock Items</h6>
+                                            <h4 id="lowStock"><?= number_format($lowStock); ?></h4>
+                                        </div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
 
+                            <!-- Out of Stock Items -->
                             <div class="col-6 col-sm-3 col-lg-3">
-                                <div
-                                    class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
-                                    <i class="bi bi-x-circle fs-2 text-danger me-2"></i>
-                                    <div>
-                                        <h6>Out of Stock Items</h6>
-                                        <h4 id="outOfStock"><?php echo number_format($outOfStock); ?></h4>
+                                <a href="product_details.php" class="text-decoration-none">
+                                    <div
+                                        class="card p-3 metric-card d-flex justify-content-between flex-row-reverse align-items-center bg-light shadow-sm rounded">
+                                        <i class="bi bi-x-circle fs-2 text-danger me-2"></i>
+                                        <div>
+                                            <h6>Out of Stock Items</h6>
+                                            <h4 id="outOfStock"><?= number_format($outOfStock); ?></h4>
+                                        </div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
                         </div>
+
                     </div>
                 </section>
 

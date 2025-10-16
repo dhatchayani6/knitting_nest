@@ -66,12 +66,6 @@ while ($row = $recentResult->fetch_assoc()) {
     $recentTransfers[] = $row;
 }
 
-
-
-
-
-
-
 // ============================
 // 4. Sales Trends per Month
 // ============================
@@ -353,6 +347,7 @@ while ($row = $catResult->fetch_assoc()) {
                         <thead>
                             <tr>
                                 <th>Product Name</th>
+                                <th>Store Name</th>
                                 <th>Units Sold</th>
                                 <th>Revenue</th>
                             </tr>
