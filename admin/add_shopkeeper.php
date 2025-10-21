@@ -44,6 +44,7 @@ if ($result && $result->num_rows > 0) {
         integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
         crossorigin="anonymous"></script>
 
+
 </head>
 
 <body>
@@ -64,60 +65,60 @@ if ($result && $result->num_rows > 0) {
                 <section class="section">
                     <div class="container">
 
-                     <div class="card shadow-sm rounded-3 border p-4">
-                        <span class="fw-bold">ADD SHOPKEEPER</span>
-                        <form action="" id="addshopkeeper" method="post" class="p-3">
-                            <div class="row">
-                                <div class="col-md-6">
+                        <div class="card shadow-sm rounded-3 border p-4">
+                            <span class="fw-bold">ADD SHOPKEEPER</span>
+                            <form action="" id="addshopkeeper" method="post" class="p-3">
+                                <div class="row">
+                                    <div class="col-md-6">
 
 
-                                    <div class="mb-3">
-                                        <label for="formFileDisabled" class="form-label">STORE NAME</label>
-                                        <select class="form-select" name="shop_name" required>
-                                            <option value="">Select Store</option>
-                                            <?php foreach ($shops as $shop): ?>
-                                                <option value="<?php echo $shop['id']; ?>">
-                                                    <?php echo htmlspecialchars($shop['stores_name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <div class="mb-3">
+                                            <label for="formFileDisabled" class="form-label">STORE NAME</label>
+                                            <select class="form-select" name="shop_name" required>
+                                                <option value="">Select Store</option>
+                                                <?php foreach ($shops as $shop): ?>
+                                                    <option value="<?php echo $shop['id']; ?>">
+                                                        <?php echo htmlspecialchars($shop['stores_name']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="formFile" class="form-label">SHOPKEEPER NAME</label>
+                                            <input class="form-control" type="text" name="shopkeeper_name"
+                                                placeholder="Enter the shopkeeper name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="formFile" class="form-label">SHOPKEEPER PASSWORD</label>
+                                            <input class="form-control" type="text" name="password"
+                                                placeholder="Enter the shopkeeper name" required>
+                                        </div>
+
+
 
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="formFile" class="form-label">SHOPKEEPER NAME</label>
-                                        <input class="form-control" type="text" name="shopkeeper_name"
-                                            placeholder="Enter the shopkeeper name" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="formFile" class="form-label">SHOPKEEPER PASSWORD</label>
-                                        <input class="form-control" type="text" name="password"
-                                            placeholder="Enter the shopkeeper name" required>
-                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="formFileMultiple" class="form-label">STORE LOCATION</label>
+                                            <input class="form-control" type="text" name="store_location"
+                                                placeholder="Enter the store location" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="formFile" class="form-label">SHOPKEEPER BIO_ID</label>
+                                            <input class="form-control" type="text" name="shopkeeper_bioid"
+                                                placeholder="Enter the shopkeeper name" required>
+                                        </div>
 
 
 
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="formFileMultiple" class="form-label">STORE LOCATION</label>
-                                        <input class="form-control" type="text" name="store_location"
-                                            placeholder="Enter the store location" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="formFile" class="form-label">SHOPKEEPER BIO_ID</label>
-                                        <input class="form-control" type="text" name="shopkeeper_bioid"
-                                            placeholder="Enter the shopkeeper name" required>
                                     </div>
 
 
 
-                                </div>
 
 
-
-
-
-                                <!-- <div class="col-md-6">
+                                    <!-- <div class="col-md-6">
 
 
                                     <div class="mb-3">
@@ -131,14 +132,14 @@ if ($result && $result->num_rows > 0) {
                                     </div>
 
                                 </div> -->
-                                <div class="col-12  text-center ">
-                                    <button type="submit" name="shopkeeper" class="btn btn-primary w-35">Add
-                                        Shopkeeper</button>
-                                </div>
+                                    <div class="col-12  text-center ">
+                                        <button type="submit" name="shopkeeper" class="btn btn-primary w-35">Add
+                                            Shopkeeper</button>
+                                    </div>
 
-                            </div>
-                        </form>
-                     </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </section>
 
@@ -151,23 +152,23 @@ if ($result && $result->num_rows > 0) {
                     <div class="container">
                         <div class="row">
                             <div class="table-responsive">
-                            <table class="table table-striped text-center">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">S.NO</th>
-                                        <th scope="col">STORE NAME</th>
-                                        <th scope="col">STORE LOCATIONS</th>
-                                        <th scope="col">SHOPKEEPER NAME</th>
-                                        <th scope="col">SHOPKEEPER BIO_ID</th>
-                                        <th scope="col">SHOPKEEPER PASSWORD</th>
-                                        <th scope="col">ACTIONS</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="fetch_shopkeeper">
+                                <table class="table table-striped text-center">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">S.NO</th>
+                                            <th scope="col">STORE NAME</th>
+                                            <th scope="col">STORE LOCATIONS</th>
+                                            <th scope="col">SHOPKEEPER NAME</th>
+                                            <th scope="col">SHOPKEEPER BIO_ID</th>
+                                            <th scope="col">SHOPKEEPER PASSWORD</th>
+                                            <th scope="col">ACTIONS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fetch_shopkeeper">
 
 
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

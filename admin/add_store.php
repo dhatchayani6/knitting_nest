@@ -30,6 +30,7 @@ include('../includes/config.php'); // adjust path if needed
         integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
         crossorigin="anonymous"></script>
 
+
 </head>
 
 <body>
@@ -109,21 +110,21 @@ include('../includes/config.php'); // adjust path if needed
                     <div class="container">
                         <div class="row">
                             <div class="table-responsive">
-                            <table class="table  table-striped text-center">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">S.NO</th>
-                                        <th scope="col">STORE NAME</th>
-                                        <th scope="col">STORE LOCATION</th>
-                                        <!-- <th scope="col">usertype</th> -->
-                                        <th scope="col">ACTIONS</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="fetch_stores">
+                                <table class="table  table-striped text-center">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">S.NO</th>
+                                            <th scope="col">STORE NAME</th>
+                                            <th scope="col">STORE LOCATION</th>
+                                            <!-- <th scope="col">usertype</th> -->
+                                            <th scope="col">ACTIONS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fetch_stores">
 
 
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
