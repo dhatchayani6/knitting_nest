@@ -1,5 +1,5 @@
 <?php
-include('../../includes/config.php');
+include('../../config/config.php');
 
 // Set header to JSON
 header('Content-Type: application/json');

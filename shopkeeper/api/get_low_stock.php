@@ -1,6 +1,6 @@
 <?php
 session_start();
-include __DIR__ . '/../../includes/config.php';
+include '../../config/config.php';
 
 // Set JSON header
 header('Content-Type: application/json');
@@ -39,11 +39,11 @@ if ($shopResult->num_rows === 0) {
 $shopRow = $shopResult->fetch_assoc();
 $shop_id = $shopRow['shop_id'];
 
-// Query low stock items for this shop only (use store_id)
-$sql = "SELECT id, item_name, item_quantity, stock_level, store_name 
+// Fetch low-stock items for this shop only
+$sql = "SELECT id, item_name, item_quantity, stock_level, store_name, items_image, vendor_name
         FROM items 
         WHERE CAST(item_quantity AS UNSIGNED) < CAST(stock_level AS UNSIGNED)
-        AND store_id = ?
+          AND store_id = ?
         ORDER BY id ASC";
 
 $stmt = $conn->prepare($sql);
@@ -53,32 +53,26 @@ $result = $stmt->get_result();
 
 $notifications = [];
 
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $notifications[] = [
-            "id" => $row['id'],
-            "item_name" => $row['item_name'],
-            "item_quantity" => (int) $row['item_quantity'],
-            "stock_level" => (int) $row['stock_level'],
-            "shop_name" => $row['store_name'],
-            "message" => "Item '{$row['item_name']}' is low in stock ({$row['item_quantity']}/{$row['stock_level']})"
-        ];
-    }
-
-    echo json_encode([
-        "success" => true,
-        "count" => count($notifications),
-        "notifications" => $notifications,
-        "message" => "There are low stock items"
-    ]);
-} else {
-    echo json_encode([
-        "success" => true,
-        "count" => 0,
-        "notifications" => [],
-        "message" => "No notifications found"
-    ]);
+while ($row = $result->fetch_assoc()) {
+    $notifications[] = [
+        "id" => $row['id'],
+        "item_name" => $row['item_name'],
+        "item_quantity" => (int) $row['item_quantity'],
+        "stock_level" => (int) $row['stock_level'],
+        "shop_name" => $row['store_name'],
+        "items_image" => $row['items_image'] ?: 'default.png',
+        "vendor_name" => $row['vendor_name'] ?: null,
+        "message" => "Item '{$row['item_name']}' is low in stock ({$row['item_quantity']}/{$row['stock_level']})"
+    ];
 }
+
+// Return JSON response
+echo json_encode([
+    "success" => true,
+    "count" => count($notifications),
+    "notifications" => $notifications,
+    "message" => count($notifications) > 0 ? "There are low stock items" : "No notifications found"
+]);
 
 $stmt->close();
 $conn->close();

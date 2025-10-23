@@ -1,116 +1,99 @@
 <?php
-session_start();
-include('../includes/config.php'); // adjust path if needed
-// Check if bio_id exists in the session
+session_start(); // Must be first
+include('../config/config.php');
+
+// Check if user is logged in
 if (!isset($_SESSION['bio_id'])) {
-    echo '<p class="text-center">Please log in to view your products.</p>';
+    // Redirect to index page if not logged in
+    header("Location: ../index.php");
     exit;
 }
 
-$bioid = $_SESSION['bio_id'];
 ?>
-
-<!doctype html>
-<html class="no-js" lang="en">
-
-<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Admin Dashboard </title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-    <!-- Place favicon.ico in the root directory -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link rel="stylesheet" href="css/vendor.css">
-    <link rel="stylesheet" id="theme-style" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
-        crossorigin="anonymous"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin</title>
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
 
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- bootstrap icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="../stylesheet/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .form-control:disabled,
+        .form-control[readonly] {
+            background-color: #e9ecef;
+            opacity: 1;
+        } 
+        th{
+            font-weight: 400 !important;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="main-wrapper">
-        <div class="app" id="app">
-            <!-- start header -->
-            <?php include('includes/header.php') ?>
-            <!-- end header -->
+    <?php include('includes/sidebar.php') ?>
 
-            <!-- sidebar start -->
-            <?php include('includes/sidebar.php') ?>
-            <!-- end sidebar -->
-            <div class="sidebar-overlay" id="sidebar-overlay"></div>
-            <div class="sidebar-mobile-menu-handle" id="sidebar-mobile-menu-handle"></div>
-            <div class="mobile-menu-handle"></div>
-            <!-- center content start -->
-            <article class="content dashboard-page bg-white">
+    <main class="content">
+        <?php include('includes/header.php'); ?>
 
+        <div class="scroll-section">
 
-
-                <!-- table start -->
-                <section class="section card border rounded shadow p-3">
-                    <div class="container">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-3">RECEIVED PRODUCTS</h5>
+            <section class="section card border rounded shadow p-3">
+                <div class="container">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-3">RECEIVED PRODUCTS</h6>
                         <!-- Search Box -->
                         <div class="mb-3">
                             <input type="text" id="search_input" class="form-control"
                                 placeholder="Search by item name, code, or store...">
                         </div>
-                        </div>
-                        <div class="row">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">S.No</th>
-                                            <th scope="col">ITEMS NAME</th>
-                                            <th scope="col">ITEMS CODE</th>
-                                            <th scope="col">TOTAL ITEMS QUANTITY</th>
-                                            <th scope="col">SHARED QUANTITY</th>
-                                            <th scope="col">FROM STORE </th>
-                                            <th scope="col">TO STORE </th>
-                                            <th scope="col">Transfer Date </th>
-                                            <th scope="col">Transfer Status</th>
-
-
-
-
-                                        </tr>
-                                    </thead>
-                                    <tbody class="transfer_details" id="transfer_details">
-
-
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div id="pagination" class="mt-3"></div>
-
-                        </div>
                     </div>
-                </section>
-                <!-- table end -->
-            </article>
+                    <div class="row">
+                        <div class="table-responsive ">
+                            <table class="table table-bordered text-center">
+                                <thead>
+                                    <tr>
+                                        <th >S.No</th>
+                                        <th >ITEMS NAME</th>
+                                        <th >ITEMS CODE</th>
+                                        <th >AVAILABLE QUANTITY</th>
+                                        <th >TRANSFERED QUANTITY</th>
+                                        <th >FROM STORE </th>
+                                        <th >TO STORE </th>
+                                        <th >Transfer Date </th>
+                                        <th >Transfer Status</th>
 
 
 
+
+                                    </tr>
+                                </thead>
+                                <tbody class="transfer_details" id="transfer_details">
+
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="pagination" class="mt-3"></div>
+
+                    </div>
+                </div>
+            </section>
 
         </div>
-    </div>
+    </main>
 
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="js/vendor.js"></script>
-    <script src="js/app.js"></script>
-
-
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function () {
             let limit = 10;
@@ -218,11 +201,6 @@ $bioid = $_SESSION['bio_id'];
         });
 
     </script>
-
-
-
-
-
 
 </body>
 

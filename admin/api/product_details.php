@@ -1,5 +1,5 @@
 <?php
-include('../../includes/config.php'); // adjust path
+include('../../config/config.php'); // adjust path
 
 // Pagination
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;

@@ -1,32 +1,27 @@
 <?php
-include __DIR__ . '/../../includes/config.php';
+include '../../config/config.php'; // Include database connection
 
-// Set JSON header
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET');
+$query = "
+    SELECT 
+        item_code,
+        item_name,
+        item_quantity,
+        COALESCE(stock_level,0) AS stock_level,
+        items_image,
+        vendor_name
+    FROM items
+    WHERE COALESCE(CAST(item_quantity AS SIGNED),0) < COALESCE(CAST(stock_level AS SIGNED),0)
+";
 
-
-
-// Query low stock items (item_quantity < stock_level)
-$sql = "SELECT COUNT(*) AS low_stock_count FROM items WHERE CAST(item_quantity AS UNSIGNED) < CAST(stock_level AS UNSIGNED)";
-$result = $conn->query($sql);
+$result = $conn->query($query);
+$items = [];
 
 if ($result) {
-    $row = $result->fetch_assoc();
-    echo json_encode([
-        "success" => true,
-        "count" => (int) $row['low_stock_count'],
-        "message" => (int) $row['low_stock_count'] > 0 ? "There are low stock items" : "All items sufficiently stocked"
-    ]);
-} else {
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "count" => 0,
-        "message" => "Failed to fetch low stock count"
-    ]);
+    while ($row = $result->fetch_assoc()) {
+        $items[] = $row;
+    }
 }
 
-$conn->close();
+header('Content-Type: application/json');
+echo json_encode($items);
 ?>

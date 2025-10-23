@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-include('../../includes/config.php');
+include('../../config/config.php');
 
 // 1. Fetch total revenue per month (all shops, no multiplication needed)
 $sql = "

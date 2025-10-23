@@ -4,7 +4,7 @@ header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
 // Include your database connection
-include __DIR__ . '/../../includes/config.php';
+include __DIR__ . '/../../config/config.php';
 
 // Pagination parameters
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;

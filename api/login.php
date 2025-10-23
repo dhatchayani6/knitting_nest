@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept");
 
-include "../includes/config.php";
+include "../config/config.php";
 
 try {
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {

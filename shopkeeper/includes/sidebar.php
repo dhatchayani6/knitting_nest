@@ -1,122 +1,99 @@
-<?php
-include "../includes/config.php";
-$sql = "SELECT COUNT(*) as low_stock_count FROM items WHERE item_quantity <= stock_level";
-$result = $conn->query($sql);
-$row = $result->fetch_assoc();
-$lowStockCount = $row['low_stock_count'];
-?>
-
-<aside class="sidebar bg-light">
-    <div class="sidebar-container">
-        <div class="sidebar-header">
-            <div class="brand d-flex align-items-center">
-                <div class="logo mb-5">
-                    <img src="images/logo1.png" alt="logo" width="30" height="30">
-                </div>
-                <span class="text-dark">KNITTING NEST</span>
-            </div>
-        </div>
-        <nav class="menu">
-            <ul class="sidebar-menu metismenu" id="sidebar-menu">
-                <!-- Dashboard -->
-                <li class="active">
-                    <a href="shopkeeper_index.php">
-                        <i class="fa fa-home"></i> Dashboard
-                    </a>
-                </li>
-
-                <!-- sales (billing) -->
-                <li>
-                    <a href="sales.php"><i class="fa-solid fa-cart-shopping"></i> Sales</a>
-                </li>
-
-                <!-- view products -->
-                <li>
-                    <a href="view_products.php"><i class="fa-solid fa-box-open"></i> View Products</a>
-                </li>
-
-                <!-- shared products -->
-                <li>
-                    <a href="shared_products.php"><i class="fa-solid fa-share"></i> Shared Products</a>
-                </li>
-
-
-                <!-- received products -->
-                <li>
-                    <a href="received_products.php"><i class="fa-solid fa-truck"></i> Received Products</a>
-                </li>
-
-                <!-- sales report -->
-                <li>
-                    <a href="sales_report.php"><i class="fa-solid fa-chart-line"></i> Sales Report</a>
-                </li>
-
-
-
-
-                <!-- Items
-                <li>
-                    <a href="#">
-                        <i class="fa fa-table"></i> Items
-                        <i class="fa arrow"></i>
-                    </a>
-                    <ul class="sidebar-nav">
-                        <li><a href="view_products.php">View Products</a></li>
-                    </ul>
-                </li> -->
-
-                <!-- Transfer Details
-                <li>
-                    <a href="#">
-                        <i class="fa fa-pencil-square-o"></i> Transfer Details
-                        <i class="fa arrow"></i>
-                    </a>
-                    <ul class="sidebar-nav">
-                        <li><a href="received_products.php">Received Products</a></li>
-                    </ul>
-                </li> -->
-
-                <!-- Notification -->
-                <!-- <li>
-                    <a href="notifications.php">
-                        <i class="fa fa-bell" style="font-size: 20px; position: relative;">
-                            <span id="lowStockBadge" class="badge bg-danger"
-                                style="position: absolute; top: 0px; right: -182px; font-size: 11px; border-radius: 50%;">
-                                <?= isset($lowStockCount) ? $lowStockCount : 0 ?>
-                            </span>
-                        </i> Notification
-                    </a>
-                </li> -->
-
-            </ul>
-        </nav>
+<!-- Offcanvas Sidebar (Mobile) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasSidebarLabel">Dashboard Menu</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-</aside>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"
-    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<!-- JS to update notification badge -->
-<script>
-    function updateLowStockBadge() {
-        $.ajax({
-            url: "api/get_low_stock.php",
-            type: "GET",
-            dataType: "json",
-            success: function (data) {
-                const badge = $("#lowStockBadge");
-                if (data.count > 0) {
-                    badge.text(data.count);
-                    badge.show();
-                } else {
-                    badge.hide();
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error fetching notifications:", error);
-            }
-        });
-    }
 
-    // Run immediately + every 30 seconds
-    updateLowStockBadge();
-    setInterval(updateLowStockBadge, 30000);
-</script>
+    <div class="offcanvas-body p-0">
+        <div class="sidebar border-0 position-static">
+
+            <!-- Brand -->
+            <a href="shopkeeper_index.php" class="navbar-brand d-flex align-items-center gap-2 mb-4 px-3">
+                <div class="logo">
+                    <img src="../images/logo1.png" alt="logo" width="30" height="30">
+                </div>
+                <span class="fw-bold text-uppercase text-dark">KNITTING NEST</span>
+            </a>
+            <a href="shopkeeper_index.php" class="nav-link d-flex align-items-center gap-2"> <i
+                    class="bi bi-house-door-fill"></i> Dashboard </a>
+            <!-- Sales -->
+            <a href="sales.php" class="nav-link d-flex align-items-center gap-2 px-3 mb-1">
+                <i class="bi bi-currency-dollar"></i> Sales
+            </a>
+
+            <!-- View Products -->
+            <a href="view_products.php" class="nav-link d-flex align-items-center gap-2 px-3 mb-1">
+                <i class="bi bi-box-seam"></i> View Products
+            </a>
+
+            <!-- Received Products -->
+            <a href="received_products.php" class="nav-link d-flex align-items-center gap-2 px-3 mb-1">
+                <i class="bi bi-bag-check-fill"></i> Received Products
+            </a>
+
+            <!-- Sales Report -->
+            <a href="sales_report.php" class="nav-link d-flex align-items-center gap-2 px-3 mb-1">
+                <i class="bi bi-graph-up"></i> Sales Report
+            </a>
+
+            <!-- Profile Section -->
+            <div class="profile-section mt-4 px-3 d-flex align-items-center gap-2">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="rounded-circle"
+                    width="40" height="40" />
+                <span>Jane Smith</span>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Desktop Sidebar -->
+<aside class="sidebar d-none d-lg-block">
+
+    <!-- Brand -->
+    <a href="shopkeeper_index.php" class="navbar-brand d-flex align-items-center gap-2 mb-4">
+        <div class="logo">
+            <img src="../images/logo1.png" alt="logo" width="30" height="30">
+        </div>
+        <span class="fw-bold text-uppercase text-dark">KNITTING NEST</span>
+    </a>
+    <a href="shopkeeper_index.php" class="nav-link d-flex align-items-center gap-2"> <i
+            class="bi bi-house-door-fill"></i>
+        Dashboard </a>
+    <!-- Sales -->
+    <a href="sales.php" class="nav-link d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-currency-dollar"></i> Sales
+    </a>
+
+    <!-- View Products -->
+    <a href="view_products.php" class="nav-link d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-box-seam"></i> View Products
+    </a>
+
+    <!-- Received Products -->
+    <a href="received_products.php" class="nav-link d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-bag-check-fill"></i> Received Products
+    </a>
+
+    <!-- Sales Report -->
+    <a href="sales_report.php" class="nav-link d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-graph-up"></i> Sales Report
+    </a>
+
+    <div class="profile-section mt-4 text-center">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="rounded-circle mb-2"
+            width="60" height="60" />
+
+        <?php
+        // Fetch from session
+        $bio_id = $_SESSION['bio_id'] ?? 'Unknown';
+        $user_type = $_SESSION['usertype'] ?? 'Guest';
+        ?>
+
+        <div class="fw-semibold text-dark">
+            <?php echo htmlspecialchars(ucfirst($user_type)) . ' (' . htmlspecialchars($bio_id) . ')'; ?>
+        </div>
+    </div>
+
+</aside>

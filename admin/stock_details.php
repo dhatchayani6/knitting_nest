@@ -1,0 +1,142 @@
+<?php
+session_start();
+include('../config/config.php'); // adjust path if needed
+// Check if user is logged in
+if (!isset($_SESSION['bio_id'])) {
+    // Redirect to index page if not logged in
+    header("Location: ../index.php");
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin - Add Items</title>
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+
+    <!-- Bootstrap + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../stylesheet/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        th {
+            font-weight: 400;
+        }
+    </style>
+</head>
+
+<body>
+    <?php include('includes/sidebar.php'); ?>
+    <main class="content">
+        <?php include('includes/header.php'); ?>
+
+        <div class="scroll-section">
+
+            <section class="section card shadow border p-3 mt-4">
+                <div class="container">
+                    <h6 class="mb-3">OVERALL STOCK DETAILS</h6>
+                    <div class="row">
+                        <div class="table-responsive">
+                            <table class="table table-bordered text-center align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>S No</th>
+                                        <th>ITEM NAME</th>
+                                        <th>ITEM CODE</th>
+                                        <th>SUBCATEGORY</th>
+                                        <th>AVAILABLE QUANTITY</th>
+                                        <th>STOCK</th>
+                                        <th>UNIT PRICE</th>
+                                        <th>LAST PURCHASE DATE</th>
+                                        <th>OVERALL SALE COUNT</th>
+                                        <th>IMAGE</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stock_details">
+                                    <!-- Populated by AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                        <div id="stock_pagination" class="mt-3"></div>
+                    </div>
+                </div>
+            </section>
+
+
+
+        </div>
+    </main>
+
+
+    <script>
+        $(document).ready(function () {
+            let limit = 10;
+
+            function fetchStockDetails(page = 1) {
+                $.ajax({
+                    url: "api/fetch_items.php",
+                    type: "GET",
+                    data: { page: page, limit: limit },
+                    dataType: "json",
+                    success: function (response) {
+                        let rows = "";
+                        if (response.status === "success" && response.data.length > 0) {
+                            $.each(response.data, function (index, item) {
+                                rows += `
+                                <tr>
+                                <td>${item.sno}</td>
+                                    <td>${item.item_name}</td>
+                                    <td>${item.item_code}</td>
+                                    <td>${item.sub_category || '-'}</td>
+                                    <td>${item.item_quantity}</td>
+                                    <td>${item.stock_level}</td>
+                                    <td>${item.item_price}</td>
+                                    <td>${item.created_at}</td>
+                                    <td>${item.total_sales}</td>
+                                    <td><img src="../${item.items_image}" alt="${item.item_name}" width="50"></td>
+                                </tr>`;
+                            });
+
+                        } else {
+                            rows = `<tr><td colspan="10" class="text-center text-danger">No records found</td></tr>`;
+                        }
+                        $("#stock_details").html(rows);
+
+                        // Pagination
+                        let paginationHTML = "";
+                        if (response.total_pages > 1) {
+                            paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page - 1}" ${response.current_page === 1 ? 'disabled' : ''}>Prev</button> `;
+                            for (let i = 1; i <= response.total_pages; i++) {
+                                paginationHTML += `<button class="btn btn-sm ${i === response.current_page ? 'btn-primary' : 'btn-light'} stock-page-btn" data-page="${i}">${i}</button> `;
+                            }
+                            paginationHTML += `<button class="btn btn-sm btn-light stock-page-btn" data-page="${response.current_page + 1}" ${response.current_page === response.total_pages ? 'disabled' : ''}>Next</button>`;
+                        }
+                        $("#stock_pagination").html(paginationHTML);
+                    },
+                    error: function (xhr) {
+                        $("#stock_details").html(`<tr><td colspan="10" class="text-center text-danger">Something went wrong!</td></tr>`);
+                        $("#stock_pagination").html("");
+                    }
+                });
+            }
+
+            fetchStockDetails(1);
+
+            $(document).on("click", ".stock-page-btn", function () {
+                let page = $(this).data("page");
+                fetchStockDetails(page);
+            });
+        });
+    </script>
+</body>
+
+</html>

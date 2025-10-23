@@ -1,76 +1,95 @@
-<!doctype html>
-<html class="no-js" lang="en">
+<?php
+session_start(); // Must be first
+include('../config/config.php');
+
+// Check if user is logged in
+if (!isset($_SESSION['bio_id'])) {
+    // Redirect to index page if not logged in
+    header("Location: ../index.php");
+    exit;
+}
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Admin Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin</title>
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
 
-    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link rel="stylesheet" href="css/vendor.css">
-    <link rel="stylesheet" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- bootstrap icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-    <style>
-        tr th {
-            font-size: 15px;
-            font-weight: 600;
-        }
+    <link rel="stylesheet" href="../stylesheet/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 
-        .filter-btns .btn {
-            margin-right: 5px;
-        }
-    </style>
 </head>
 
 <body>
-    <div class="main-wrapper">
-        <div class="app" id="app">
-            <?php include('includes/header.php') ?>
-            <?php include('includes/sidebar.php') ?>
+    <?php include('includes/sidebar.php') ?>
 
-            <article class="content dashboard-page bg-white">
-                <section class="section card shadow border p-3 mt-4">
-                    <div class="container">
+    <main class="content">
+        <?php include('includes/header.php'); ?>
 
-                        <div class="row mb-3 filter-btns p-3">
-                            <div class="col">
-                                <button class="btn btn-primary stock-filter-btn" data-filter="all">All</button>
-                                <button class="btn btn-success stock-filter-btn" data-filter="in-stock">In
-                                    Stock</button>
-                                <button class="btn btn-warning stock-filter-btn" data-filter="low-stock">Low
-                                    Stock</button>
-                                <button class="btn btn-danger stock-filter-btn" data-filter="out-of-stock">Out of
-                                    Stock</button>
-                            </div>
+        <div class="scroll-section">
+
+            <section class="section card shadow border p-3 mt-4">
+                <div class="container">
+                    <div class="row mb-3 g-2">
+                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                            <button class="btn btn-primary w-100 stock-filter-btn" data-filter="all">All</button>
                         </div>
-
-                        <div class="table-responsive">
-                            <table class="table  text-center">
-                                <thead>
-                                    <tr>
-                                        <th>S.No</th>
-                                        <th>STORE NAME</th>
-                                        <th>NAME</th>
-                                        <th>CODE</th>
-                                        <th>AVAILABLE QUANTITY</th>
-                                        <th>UNIT PRICE</th>
-                                        <th>STOCK LEVEL</th>
-                                        <th>IMAGE</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="stock_details"></tbody>
-                            </table>
+                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                            <button class="btn btn-success w-100 stock-filter-btn" data-filter="in-stock">In
+                                Stock</button>
                         </div>
-
-                        <div id="stock_pagination" class="mt-3"></div>
+                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                            <button class="btn btn-warning w-100 stock-filter-btn" data-filter="low-stock">Low
+                                Stock</button>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                            <button class="btn btn-danger w-100 stock-filter-btn" data-filter="out-of-stock">Out of
+                                Stock</button>
+                        </div>
                     </div>
-                </section>
-            </article>
+
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th>S.No</th>
+                                    <th>STORE NAME</th>
+                                    <th>NAME</th>
+                                    <th>CODE</th>
+                                    <th>AVAILABLE QUANTITY</th>
+                                    <th>UNIT PRICE</th>
+                                    <th>STOCK LEVEL</th>
+                                    <th>IMAGE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock_details"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="stock_pagination" class="mt-3"></div>
+                </div>
+            </section>
+
+
+
+
+
+
+
+
         </div>
-    </div>
+    </main>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="js/vendor.js"></script>

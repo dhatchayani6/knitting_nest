@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-include __DIR__ . '/../../includes/config.php'; // adjust path
+include __DIR__ . '/../../config/config.php'; // adjust path
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $item_name = $_POST['item_name'] ?? '';

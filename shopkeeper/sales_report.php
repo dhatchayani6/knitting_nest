@@ -1,545 +1,170 @@
 <?php
 session_start();
-include('../includes/config.php'); // adjust path if needed
-
-
-
-// fetch all shops names
-$sql = "SELECT id, stores_name FROM shops";
-$result = $conn->query($sql);
-
+include('../config/config.php'); // adjust path if needed
+// Check if user is logged in
+if (!isset($_SESSION['bio_id'])) {
+    // Redirect to index page if not logged in
+    header("Location: ../index.php");
+    exit;
+}
+// ============================
+// Fetch Shops
+// ============================
 $shops = [];
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $shops[] = $row;
-    }
+$shopSql = "SELECT id, stores_name, stores_location FROM shops ORDER BY stores_name ASC";
+$shopResult = $conn->query($shopSql);
+while ($shop = $shopResult->fetch_assoc()) {
+    $shops[] = $shop;
 }
 ?>
-
-
-<!doctype html>
-<html class="no-js" lang="en">
-
-<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Admin Dashboard </title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-    <!-- Place favicon.ico in the root directory -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link rel="stylesheet" href="css/vendor.css">
-    <link rel="stylesheet" id="theme-style" href="css/app.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
-        crossorigin="anonymous"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../stylesheet/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     <style>
-        .summary-cards {
-            background-color: #edf7fa;
-            display: flex;
-            justify-content: space-between;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }
-
-        .summary-card {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem 1.5rem;
-            flex: 1 1 16%;
-            min-width: 150px;
-            box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
-        }
-
-        .summary-card h6 {
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 0.85rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .summary-card .value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #1a202c;
-        }
-
-        section.analytics {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-        }
-
-        .chart-card {
-            background: white;
-            padding: 1.25rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
-            flex: 1 1 40%;
-            min-width: 320px;
-        }
-
-        .chart-card h5 {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .chart-legend {
-            display: flex;
-            gap: 1.5rem;
-            margin-top: 15px;
-        }
-
-        .chart-legend div {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.85rem;
-            color: #4a5568;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .color-electronics {
-            background-color: #007b8a;
-        }
-
-        .color-apparel {
-            background-color: #009c66;
-        }
-
-        .color-homegoods {
-            background-color: #44b2af;
-        }
-
-        .color-books {
-            background-color: #caeaf6;
-        }
-
-        .color-beauty {
-            background-color: #1f2f37;
-        }
-
-        .report-table {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
-            flex: 1 1 50%;
-            min-width: 320px;
-        }
-
-        .report-table h5 {
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table thead {
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        table thead th {
-            text-align: left;
-            padding: 0.75rem 1rem;
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-
-        table tbody tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        table tbody td {
-            padding: 0.6rem 1rem;
-            color: #1a202c;
-            vertical-align: middle;
-            font-size: 0.9rem;
-        }
-
-        .badge {
-            padding: 0.3em 0.7em;
-            font-size: 0.8rem;
-            border-radius: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-            display: inline-block;
-        }
-
-        .badge-electronics {
-            background-color: #caeaf6;
-            color: #007b8a;
-        }
-
-        .badge-apparel {
-            background-color: #c7f3d6;
-            color: #009c66;
-        }
-
-        .badge-homegoods {
-            background-color: #c6e5e2;
-            color: #44b2af;
+        @media (min-width:768px) {
+            #shopFilter {
+                width: 100%;
+                max-width: 180px !important;
+            }
         }
     </style>
-
 </head>
 
 <body>
-    <div class="main-wrapper">
-        <div class="app" id="app">
-            <!-- start header -->
-            <?php include('includes/header.php') ?>
-            <!-- end header -->
 
-            <!-- sidebar start -->
-            <?php include('includes/sidebar.php') ?>
-            <!-- end sidebar -->
-            <div class="sidebar-overlay" id="sidebar-overlay"></div>
-            <div class="sidebar-mobile-menu-handle" id="sidebar-mobile-menu-handle"></div>
-            <div class="mobile-menu-handle"></div>
-            <!-- center content start -->
-            <article class="content dashboard-page bg-white">
+    <?php include('includes/sidebar.php') ?>
+    <main class="content">
+        <?php include('includes/header.php'); ?>
 
-                <section>
-                    <div class="summary-cards">
-                        <div class="summary-card d-flex align-items-center gap-3">
-                            <div class="icon bg-primary text-white p-2 rounded-circle">
-                                <i class="fas fa-boxes fa-1x"></i>
-                            </div>
-                            <div>
-                                <h6>Total Products</h6>
-                                <div class="value" id="totalProducts">0</div>
-                            </div>
-                        </div>
-                        <div class="summary-card d-flex align-items-center gap-3">
-                            <div class="icon bg-success text-white p-2 rounded-circle">
-                                <i class="fas fa-shopping-cart fa-1x"></i>
-                            </div>
+        <div class="scroll-section">
+
+            <section>
+
+
+                <!-- Summary Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-4">
+                        <div
+                            class="p-3 d-flex justify-content-between align-items-center gap-2 border rounded shadow-sm">
                             <div>
                                 <h6>Total Sales</h6>
-                                <div class="value" id="totalSales">0</div>
+                                <div id="totalSales" class="value">0</div>
                             </div>
+                            <i class="bi bi-cart-fill fs-2 text-primary"></i>
                         </div>
-                        <div class="summary-card d-flex align-items-center gap-3">
-                            <div class="icon bg-warning text-white p-2 rounded-circle">
-                                <i class="fas fa-dollar-sign fa-1x"></i>
-                            </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <div
+                            class="p-3 d-flex justify-content-between align-items-center gap-2 border rounded shadow-sm">
                             <div>
                                 <h6>Total Revenue</h6>
-                                <div class="value" id="totalRevenue">Rs. 0</div>
+                                <div id="totalRevenue" class="value">Rs.0</div>
                             </div>
+                            <i class="bi bi-cash-stack fs-2 text-success"></i>
                         </div>
                     </div>
-                </section>
 
-
-
-                <section class="analytics">
-                    <div class="chart-card">
-                        <h5>Sales Trends Over Time</h5>
-                        <p class="text-muted small">Monthly sales performance across various metrics.</p>
-                        <canvas id="salesLineChart" width="400" height="280"></canvas>
+                    <div class="col-12 col-md-4">
+                        <div
+                            class="p-3 d-flex justify-content-between align-items-center gap-2 border rounded shadow-sm">
+                            <div>
+                                <h6>Total Stock</h6>
+                                <div id="totalStock" class="value">0</div>
+                            </div>
+                            <i class="bi bi-box-seam fs-2 text-warning"></i>
+                        </div>
                     </div>
-                    <!-- <div class="chart-card">
-                        <h5>Product Category Breakdown</h5>
-                        <p class="text-muted small">Sales distribution across different product categories.</p>
-                        <canvas id="categoryDonutChart" width="400" height="280"></canvas>
-                    </div> -->
+                </div>
 
-                    <div class="chart-card">
-                        <h5>Sales Details</h5>
-                        <table class="table" id="recentSalesTable">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Item Name</th>
-                                    <th>Item Code</th>
-                                    <th>Date</th>
-                                    <th>Total Items</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Filled dynamically via AJAX -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="d-flex flex-wrap gap-4">
-                    <!-- <section class="report-table flex-grow-1">
-                        <h5>Top Selling Products</h5>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>Category</th>
-                                    <th>Units Sold</th>
-                                    <th>Revenue</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Wireless Headphones Pro</td>
-                                    <td><span class="badge badge-electronics">Electronics</span></td>
-                                    <td>1200</td>
-                                    <td>Rs. 72000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Organic Cotton T-Shirt</td>
-                                    <td><span class="badge badge-apparel">Apparel</span></td>
-                                    <td>2500</td>
-                                    <td>Rs. 50000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Smart Home Speaker X</td>
-                                    <td><span class="badge badge-electronics">Electronics</span></td>
-                                    <td>800</td>
-                                    <td>Rs. 48000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Aromatherapy Diffuser</td>
-                                    <td><span class="badge badge-homegoods">Home Goods</span></td>
-                                    <td>1500</td>
-                                    <td>Rs. 30000.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Stainless Steel Water Bottle</td>
-                                    <td><span class="badge badge-homegoods">Home Goods</span></td>
-                                    <td>2000</td>
-                                    <td>Rs. 25000.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </section> -->
-                    <!-- <section class="report-table flex-grow-1">
-                        <h5>Sales Details</h5>
-                        <table class="table" id="recentSalesTable">
-                            <thead>
+                <!-- Top Selling Products Table -->
+                <section class="report-table  flex-grow-1">
+                    <h5>Top Selling Products</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered  align-middle text-center">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Item Name</th>
-                                    <th>Item Code</th>
-                                    <th>Date</th>
-                                    <th>Total Items</th>
+                                    <th>Subcategory</th>
+                                    <th>Total Revenue (Rs.)</th>
+                                    <th>Available Quantity</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="topProductsTable">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Select a shop to view data</td>
+                                </tr>
                             </tbody>
                         </table>
-                    </section> -->
-
+                    </div>
                 </section>
-
-
-                <!-- center content ended -->
-
-                <!-- table start -->
-
-
-
-            </article>
-            <!-- table end -->
-
+            </section>
 
 
         </div>
-    </div>
-
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <script src="js/vendor.js"></script>
-    <script src="js/app.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </main>
 
     <script>
-        function loadRecentSales() {
+        function fetchShopData(shopId = '') {
             $.ajax({
-                url: 'api/getRecentSales.php',
-                method: 'GET',
+                url: 'api/fetch_shop_report.php',
+                type: 'GET',
+                data: { shop_id: shopId },
                 dataType: 'json',
-                success: function (sales) {
-                    let tbody = '';
-                    if (sales.length === 0) {
-                        tbody = `<tr><td colspan="4" class="text-center text-danger">No sales found</td></tr>`;
+                success: function (response) {
+                    if (response.status === 'success') {
+                        // Update summary cards
+                        $('#totalSales').text(response.summary.total_sales);
+                        $('#totalRevenue').text('Rs.' + response.summary.total_revenue);
+                        $('#totalStock').text(response.summary.total_stock);
+
+                        // Update top-selling products table
+                        let rows = '';
+                        if (response.topProducts.length > 0) {
+                            response.topProducts.forEach(item => {
+                                rows += `<tr>
+                                <td>${item.item_name}</td>
+                                <td>${item.sub_category || '—'}</td>
+                                <td>Rs.${item.total_revenue}</td>
+                                <td>${item.available_quantity}</td>
+                            </tr>`;
+                            });
+                        } else {
+                            rows = `<tr><td colspan="5" class="text-center text-muted">No products found.</td></tr>`;
+                        }
+                        $('#topProductsTable').html(rows);
                     } else {
-                        sales.forEach(sale => {
-                            tbody += `
-                        <tr>
-                            <td>${sale.id}</td>
-
-                            <td>${sale.item_name}</td>
-                            <td>${sale.item_code}</td>
-                            <td>${sale.total_items}</td>
-                            <td>${new Date(sale.created_at).toLocaleDateString('en-GB')}</td>
-
-                        </tr>
-                    `;
-                        });
+                        alert(response.message || 'Error fetching data');
                     }
-                    $('#recentSalesTable tbody').html(tbody);
+                },
+                error: function () {
+                    alert('AJAX error');
                 }
             });
         }
 
         $(document).ready(function () {
-            loadRecentSales();
-        });
+            // Load overall data by default
+            fetchShopData();
 
-    </script>
-
-    <script>
-        const salesCtx = document.getElementById('salesLineChart').getContext('2d');
-
-        fetch('api/monthly_sales.php')
-            .then(res => res.json())
-            .then(monthlyData => {
-                const salesLineChart = new Chart(salesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                        datasets: [{
-                            label: 'Sales',
-                            data: monthlyData,
-                            borderColor: '#0d9488',
-                            backgroundColor: 'transparent',
-                            borderWidth: 3,
-                            tension: 0.25,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: true },
-                            tooltip: { mode: 'index', intersect: false }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { font: { size: 12 } }
-                            },
-                            x: {
-                                ticks: { font: { size: 12 } }
-                            }
-                        }
-                    }
-                });
-            })
-            .catch(err => console.error('Error fetching monthly sales:', err));
-
-    </script>
-
-    <script>
-        $(document).ready(function () {
-            $.ajax({
-                url: 'api/summary.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function (data) {
-                    $('#totalProducts').text(data.total_products);
-                    $('#totalSales').text(data.total_sales);
-                    $('#totalRevenue').text('Rs. ' + Number(data.total_revenue).toLocaleString());
-                },
-                error: function (err) {
-                    console.error('Error fetching summary:', err);
-                }
+            // On shop change
+            $('#shopFilter').on('change', function () {
+                const shopId = $(this).val();
+                fetchShopData(shopId);
             });
         });
     </script>
-
-
-    <!-- <script>
-        const salesCtx = document.getElementById('salesLineChart').getContext('2d');
-        const salesLineChart = new Chart(salesCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                datasets: [
-                    {
-                        label: 'Sales',
-                        data: [35000, 45000, 40000, 47000, 46000, 49000, 54000, 60000],
-                        borderColor: '#0d9488',
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        tension: 0.25,
-                        fill: false
-                    },
-                    {
-                        label: 'Other Metric',
-                        data: [1000, 2000, 1800, 1500, 2300, 2100, 2600, 2800],
-                        borderColor: '#2563eb',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { mode: 'index', intersect: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { drawBorder: false },
-                        ticks: {
-                            font: { size: 12 }
-                        }
-                    },
-                    x: {
-                        grid: { drawBorder: false, drawOnChartArea: false },
-                        ticks: { font: { size: 12 } }
-                    }
-                }
-            }
-        });
-
-        const categoryCtx = document.getElementById('categoryDonutChart').getContext('2d');
-        const categoryDonutChart = new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Electronics', 'Apparel', 'Home Goods', 'Books', 'Beauty'],
-                datasets: [{
-                    data: [25, 20, 20, 15, 20],
-                    backgroundColor: ['#007b8a', '#009c66', '#44b2af', '#caeaf6', '#1f2f37'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: '70%',
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    </script> -->
-
 
 </body>
 

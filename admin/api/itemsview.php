@@ -4,7 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Headers: Content-Type");
 
-include __DIR__ . '/../../includes/config.php'; // Include database connection
+include '../../config/config.php'; // Include database connection
 
 // Pagination parameters
 $page = isset($_GET['page']) && $_GET['page'] > 0 ? (int) $_GET['page'] : 1;

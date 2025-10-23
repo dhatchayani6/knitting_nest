@@ -217,6 +217,8 @@
                                 window.location.href = "admin/admin_index.php";
                             } else if (res.usertype === "shopkeeper") {
                                 window.location.href = "shopkeeper/shopkeeper_index.php";
+                            } else if (res.usertype === "superadmin") {
+                                window.location.href = "superadmin/add_stores.php";
                             }
                         } else {
                             alert(res.message);

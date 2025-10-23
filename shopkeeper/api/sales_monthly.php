@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-include('../../includes/config.php');
+include('../../config/config.php');
 
 $store_id = isset($_GET['store_id']) ? (int) $_GET['store_id'] : 0;
 if (!$store_id) {

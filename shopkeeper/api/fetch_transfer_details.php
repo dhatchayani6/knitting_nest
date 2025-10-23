@@ -3,7 +3,7 @@ session_start();
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
-include __DIR__ . '/../../includes/config.php';
+include __DIR__ . '/../../config/config.php';
 
 if (!isset($_SESSION['bio_id'])) {
     echo json_encode(['status' => 'error', 'message' => 'Please log in to view your transfers']);

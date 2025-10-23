@@ -3,7 +3,7 @@ session_start();
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
-include __DIR__ . '/../../includes/config.php';
+include __DIR__ . '/../../config/config.php';
 
 // Check login
 if (!isset($_SESSION['bio_id'])) {

@@ -1,41 +1,25 @@
-<header class="header bg-light">
-    <div class="header-block header-block-collapse d-lg-none d-xl-none">
-        <button class="collapse-btn" id="sidebar-collapse-btn">
-            <i class="fa fa-bars"></i>
+<!-- Header -->
+<header class="header-bar d-flex align-items-center justify-content-between px-3 py-2 bg-light shadow-sm">
+    <!-- Sidebar Toggle (mobile) -->
+    <button class="btn  d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Title -->
+    <h5 class="mb-0 text-dark flex-grow-1 text-center">STORE MANAGER</h5>
+
+    <!-- Notifications & Profile -->
+    <div class="d-flex align-items-center gap-3">
+        <!-- Notification Icon -->
+        <button class="btn btn-link text-dark p-0 fs-5" title="Notifications">
+            <i class="bi bi-bell"></i>
         </button>
-    </div>
-    <div class="header-block header-block-search">
-        <form role="search">
-            <!-- <div class="input-container">
-                                <i class="fa fa-search"></i>
-                                <input type="search" placeholder="Search">
-                                <div class="underline"></div>
-                            </div> -->
+
+        <!-- Logout Button -->
+        <form action="../api/logout.php" method="POST" class="m-0">
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
         </form>
-    </div>
-    <h6 class="mb-0">Store Manager</h6>
-
-    <div class="header-block header-block-nav">
-        <ul class="nav-profile">
-
-            <li class="profile dropdown">
-                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
-                    aria-expanded="false">
-
-                    <span class="name"> Admin </span>
-                </a>
-                <div class="dropdown-menu profile-dropdown-menu" aria-labelledby="dropdownMenu1">
-                    <!-- <a class="dropdown-item" href="#">
-                                        <i class="fa fa-user icon"></i> Profile </a>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fa fa-bell icon"></i> Notifications </a>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fa fa-gear icon"></i> Settings </a> -->
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="../index.php">
-                        <i class="fa fa-power-off icon"></i> Logout </a>
-                </div>
-            </li>
-        </ul>
     </div>
 </header>
