@@ -114,8 +114,10 @@ if (!isset($_SESSION['bio_id'])) {
                                 <td>${item.available_quantity}</td>
                                 <td>${item.shared_quantity}</td>
 
-                                <td>${item.from_store}</td>
-                                <td>${item.to_store}</td>
+                                <td>${item.from_store.stores_name} - ${item.from_store.stores_location}</td>
+<td>${item.to_store.stores_name} - ${item.to_store.stores_location}</td>
+
+
                                  <td>${item.created_at}</td>
                                 <td>${item.transfer_status}</td>
 

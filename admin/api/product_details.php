@@ -31,14 +31,13 @@ switch ($filter) {
 }
 
 // Total items for this filter
-$totalQuery = "SELECT COUNT(*) AS total FROM items i $where";
+$totalQuery = "SELECT COUNT(*) AS total FROM items i LEFT JOIN shops sh ON i.store_id = sh.id $where";
 $totalResult = $conn->query($totalQuery);
 $totalRow = $totalResult->fetch_assoc();
 $totalItems = $totalRow['total'] ?? 0;
 $totalPages = ceil($totalItems / $limit);
 
 if ($totalItems == 0) {
-    // Return message if no items
     $response = [
         'status' => 'error',
         'message' => $message,
@@ -47,7 +46,7 @@ if ($totalItems == 0) {
         'data' => []
     ];
 } else {
-    // Fetch paginated items
+    // Fetch paginated items with store location
     $query = "
         SELECT 
             i.id,
@@ -57,7 +56,8 @@ if ($totalItems == 0) {
             i.item_price,
             COALESCE(i.stock_level,0) AS stock_level,
             COALESCE(i.items_image,'default.png') AS items_image,
-            COALESCE(sh.stores_name,'N/A') AS store_name
+            COALESCE(sh.stores_name,'N/A') AS store_name,
+            COALESCE(sh.stores_location,'N/A') AS stores_location
         FROM items i
         LEFT JOIN shops sh ON i.store_id = sh.id
         $where
@@ -70,6 +70,12 @@ if ($totalItems == 0) {
     $sno = $offset + 1;
     while ($row = $result->fetch_assoc()) {
         $row['sno'] = $sno++;
+        // merge store info as an object
+        $row['store'] = [
+            'stores_name' => $row['store_name'],
+            'stores_location' => $row['stores_location']
+        ];
+        unset($row['store_name'], $row['stores_location']); // remove old keys
         $data[] = $row;
     }
 
@@ -83,3 +89,4 @@ if ($totalItems == 0) {
 
 header('Content-Type: application/json');
 echo json_encode($response);
+?>

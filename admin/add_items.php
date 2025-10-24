@@ -20,7 +20,7 @@ if ($result && $result->num_rows > 0) {
 
 // Fetch shops (stores)
 $shops = [];
-$sql = "SELECT id, stores_name FROM shops";
+$sql = "SELECT id, stores_name,stores_location FROM shops";
 $result = $conn->query($sql);
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -79,12 +79,14 @@ if ($result && $result->num_rows > 0) {
                                 <option value="">Select Store</option>
                                 <?php foreach ($shops as $shop): ?>
                                     <option value="<?= htmlspecialchars($shop['id']) ?>"
-                                        data-name="<?= htmlspecialchars($shop['stores_name']) ?>">
-                                        <?= htmlspecialchars($shop['stores_name']) ?>
+                                        data-name="<?= htmlspecialchars($shop['stores_name']) ?>"
+                                        data-location="<?= htmlspecialchars($shop['stores_location']) ?>">
+                                        <?= htmlspecialchars($shop['stores_name'] . ' - ' . $shop['stores_location']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                             <input type="hidden" name="store_name" id="store_name_hidden">
+                            <input type="hidden" name="store_location" id="store_location_hidden">
                         </div>
 
                         <!-- ITEM NAME -->
@@ -121,8 +123,7 @@ if ($result && $result->num_rows > 0) {
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">ITEM CODE</label>
-                            <input class="form-control" type="text" name="item_code" id="item_code"
-                                readonly required>
+                            <input class="form-control" type="text" name="item_code" id="item_code" readonly required>
                         </div>
 
 
@@ -151,8 +152,8 @@ if ($result && $result->num_rows > 0) {
                         <!-- VENDOR -->
                         <div class="col-md-6 mb-3 d-none">
                             <label class="form-label">VENDOR NAME</label>
-                            <input type="text" class="form-control" name="vendor_name" id="vendor_name"
-                                readonly required>
+                            <input type="text" class="form-control" name="vendor_name" id="vendor_name" readonly
+                                required>
                         </div>
 
                         <!-- IMAGE -->

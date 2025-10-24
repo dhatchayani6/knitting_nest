@@ -9,7 +9,7 @@ if (!isset($_SESSION['bio_id'])) {
 }
 
 // fetch all shops names
-$sql = "SELECT id, stores_name FROM shops";
+$sql = "SELECT id, stores_name,stores_location FROM shops";
 $result = $conn->query($sql);
 
 $shops = [];
@@ -128,13 +128,14 @@ if ($result2 && $result2->num_rows > 0) {
                                         <select class="form-select" name="to_store_id" required>
                                             <option value="">Select Store</option>
                                             <?php foreach ($shops as $shop): ?>
-                                                <option value="<?= $shop['id'] ?>">
-                                                    <?= htmlspecialchars($shop['stores_name']) ?>
+                                                <option value="<?= htmlspecialchars($shop['id']) ?>">
+                                                    <?= htmlspecialchars($shop['stores_name'] . ' - ' . $shop['stores_location']) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                 </div>
+
 
                                 <!-- ROW 4: AVAILABLE QUANTITY & TRANSFER QUANTITY -->
                                 <div class="col-md-6">
@@ -192,7 +193,7 @@ if ($result2 && $result2->num_rows > 0) {
                                 $('#available_quantity').val(first.available_quantity);
                                 $('#sub_category').val(first.sub_category);
 
-                                $('#from_store_name').val(first.store_name); // visible
+                                $('#from_store_name').val(first.store_name + ' - ' + first.store_location);
                                 $('#from_store_id').val(first.store_id);     // hidden
 
                                 if (res.data.length > 1) {

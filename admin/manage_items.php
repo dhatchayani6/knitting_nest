@@ -96,11 +96,11 @@ if (!isset($_SESSION['bio_id'])) {
                                 rows += `
                             <tr>
                                 <td>${item.sno}</td>
-                                <td>${item.store_name}</td>
-                                                                <td>${item.item_name}</td>
+<td>${item.store.stores_name} - ${item.store.stores_location}</td>
+                                <td>${item.item_name}</td>
 
                                 <td>${item.item_code}</td>
-                                                                <td>${item.item_quantity}</td>
+                                <td>${item.item_quantity}</td>
 
                                 <td>${item.stock_level}</td>
                                 <td>${item.item_price}</td>

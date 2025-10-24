@@ -10,19 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Fetch all items with this ID
+    // Fetch items with store info
     $stmt = $conn->prepare("
         SELECT 
-            id,
-            store_id,
-            store_name,
-            item_name,
-            item_code,
-            item_quantity,
-            sub_category
-            
-        FROM items 
-        WHERE id = ?
+            i.id,
+            i.store_id,
+            s.stores_name ,
+            s.stores_location,
+            i.item_name,
+            i.item_code,
+            i.item_quantity,
+            i.sub_category
+        FROM items i
+        LEFT JOIN shops s ON i.store_id = s.id
+        WHERE i.id = ?
     ");
     $stmt->bind_param("s", $item_id);
     $stmt->execute();
@@ -34,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $items[] = [
                 'id' => $row['id'],
                 'store_id' => $row['store_id'],
-                'store_name' => $row['store_name'],
+                'store_name' => $row['stores_name'],
+                'store_location' => $row['stores_location'],  // new
                 'item_name' => $row['item_name'],
                 'item_code' => $row['item_code'],
                 'available_quantity' => (int) $row['item_quantity'],

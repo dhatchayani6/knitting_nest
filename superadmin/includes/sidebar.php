@@ -7,9 +7,9 @@
 
     <div class="offcanvas-body p-0">
         <div class="sidebar border-0 position-static">
-            <!-- <a href="superadmin_index.php" class="nav-link d-flex align-items-center gap-2">
+            <a href="superadmin_index.php" class="nav-link d-flex align-items-center gap-2">
                 <i class="bi bi-house-door-fill"></i> Dashboard
-            </a> -->
+            </a>
             <a href="add_stores.php" class="nav-link d-flex align-items-center gap-2">
                 <i class="bi bi-building"></i> Add Stores
             </a>
@@ -31,9 +31,9 @@
         </div>
         <span class="fw-bold text-uppercase text-dark">KNITTING NEST</span>
     </a>
-    <!-- <a href="superadmin_index.php" class="nav-link d-flex align-items-center gap-2">
+    <a href="superadmin_index.php" class="nav-link d-flex align-items-center gap-2">
         <i class="bi bi-house-door-fill"></i> Dashboard
-    </a> -->
+    </a>
     <a href="add_stores.php" class="nav-link d-flex align-items-center gap-2">
         <i class="bi bi-building"></i> Add Stores
     </a>
