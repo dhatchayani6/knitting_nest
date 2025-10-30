@@ -20,7 +20,6 @@ if ($bio_id) {
     $stmt->close();
 }
 
-// Initialize response
 $response = [
     'status' => 'success',
     'summary' => [
@@ -32,13 +31,25 @@ $response = [
 ];
 
 if ($shop_id) {
-    // ✅ Fetch Summary
+    // 📅 Period filter
+    $period = $_GET['period'] ?? 'monthly';
+    $dateCondition = "";
+
+    if ($period === 'daily') {
+        $dateCondition = "DATE(s.created_at) = CURDATE()";
+    } elseif ($period === 'weekly') {
+        $dateCondition = "YEARWEEK(s.created_at, 1) = YEARWEEK(CURDATE(), 1)";
+    } else {
+        $dateCondition = "MONTH(s.created_at) = MONTH(CURDATE()) AND YEAR(s.created_at) = YEAR(CURDATE())";
+    }
+
+    // ✅ Summary Query
     $summarySql = "
         SELECT 
             COUNT(s.id) AS total_sales,
-            SUM(s.item_price) AS total_revenue
+            COALESCE(SUM(s.item_price), 0) AS total_revenue
         FROM sales s
-        WHERE s.store_id = ?
+        WHERE s.store_id = ? AND $dateCondition
     ";
     $stmt = $conn->prepare($summarySql);
     $stmt->bind_param("i", $shop_id);
@@ -46,8 +57,10 @@ if ($shop_id) {
     $summaryRes = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    // ✅ Fetch total stock correctly from items table
-    $stockSql = "SELECT SUM(CAST(remaining_quantity AS UNSIGNED)) AS total_stock FROM sales WHERE store_id = ?";
+    // ✅ Total stock
+    $stockSql = "SELECT COALESCE(SUM(CAST(remaining_quantity AS UNSIGNED)), 0) AS total_stock 
+                 FROM sales 
+                 WHERE store_id = ?";
     $stmt = $conn->prepare($stockSql);
     $stmt->bind_param("i", $shop_id);
     $stmt->execute();
@@ -57,28 +70,29 @@ if ($shop_id) {
     $response['summary'] = [
         'total_sales' => (int) ($summaryRes['total_sales'] ?? 0),
         'total_revenue' => (float) ($summaryRes['total_revenue'] ?? 0),
-        'total_stock' => (int) ($stockRes['total_stock'] ?? 0) // ✅ correct total stock
+        'total_stock' => (int) ($stockRes['total_stock'] ?? 0)
     ];
 
-    // ✅ Fetch Top Products
+    // ✅ Top Products
     $topSql = "
-    SELECT 
-        i.item_name,
-        i.sub_category,
-        i.item_quantity AS available_quantity,
-        SUM(s.item_price) AS total_revenue
-    FROM sales s
-    LEFT JOIN items i ON s.item_id = i.id
-    WHERE s.store_id = ?
-    GROUP BY i.id, i.item_name, i.sub_category, i.item_quantity
-    ORDER BY total_revenue DESC
-    LIMIT 20
-";
+        SELECT 
+            i.item_name,
+            i.sub_category,
+            i.item_quantity AS available_quantity,
+            SUM(s.item_price) AS total_revenue
+        FROM sales s
+        LEFT JOIN items i ON s.item_id = i.id
+        WHERE s.store_id = ? AND $dateCondition
+        GROUP BY i.id, i.item_name, i.sub_category, i.item_quantity
+        ORDER BY total_revenue DESC
+        LIMIT 20
+    ";
 
     $stmt = $conn->prepare($topSql);
     $stmt->bind_param("i", $shop_id);
     $stmt->execute();
     $result = $stmt->get_result();
+
     while ($row = $result->fetch_assoc()) {
         $response['topProducts'][] = [
             'item_name' => $row['item_name'],
